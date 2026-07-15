@@ -21,6 +21,29 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "FeelTheWellness | Ultimate Wellness & Premium Adult Store",
   description: "Indulge in the finest luxury sex toys designed for ultimate intimacy, sensory gratification, and sexual pleasure. Dispatched in 100% discreet packaging.",
+  metadataBase: new URL("https://feelthewellness.vercel.app"),
+  openGraph: {
+    title: "FeelTheWellness | Ultimate Wellness & Premium Adult Store",
+    description: "Indulge in the finest luxury sex toys designed for ultimate intimacy, sensory gratification, and sexual pleasure. Dispatched in 100% discreet packaging.",
+    url: "https://feelthewellness.vercel.app",
+    siteName: "FeelTheWellness",
+    images: [
+      {
+        url: "/hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "FeelTheWellness Luxury Store",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FeelTheWellness | Ultimate Wellness & Premium Adult Store",
+    description: "Indulge in the finest luxury sex toys designed for ultimate intimacy.",
+    images: ["/hero.webp"],
+  },
 };
 
 import { getProducts } from "./actions/products";

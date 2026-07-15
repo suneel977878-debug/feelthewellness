@@ -7,6 +7,34 @@ import { getProductById, getRelatedProducts } from '../../actions/products';
 
 export const revalidate = 1800;
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const productId = parseInt(resolvedParams.id, 10);
+  
+  if (isNaN(productId)) return {};
+
+  const product = await getProductById(productId);
+  
+  if (!product) return {};
+
+  return {
+    title: `${product.name} | Feel the Wellness`,
+    description: product.description.substring(0, 160),
+    openGraph: {
+      title: product.name,
+      description: product.description.substring(0, 160),
+      images: [
+        {
+          url: product.image,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+  };
+}
+
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const productId = parseInt(resolvedParams.id, 10);
