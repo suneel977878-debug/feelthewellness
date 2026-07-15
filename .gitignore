@@ -1,0 +1,12 @@
+node_modules
+.next
+*.zip
+.env
+.env.local
+cpanel_deployment
+.vercel
+*.zip
+cpanel_deployment/
+v3_vercel_source/
+updated imagge/
+new products/

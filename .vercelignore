@@ -1,0 +1,12 @@
+cpanel_deployment/
+v3_vercel_source/
+v3_vercel_source.zip
+cpanel_deployment.zip
+v2.zip
+v2_cpanel_direct.zip
+v2_patch.zip
+updated imagge/
+new products/
+*.zip
+*.log
+scripts/
