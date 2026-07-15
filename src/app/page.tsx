@@ -91,12 +91,12 @@ export default async function HomePage() {
 
   // Map category images
   const categoryImages: Record<string, string> = {
-    'Women Sex Toys': '/categories/icon_women.svg',
-    'Men Sex Toys': '/categories/icon_men.svg',
-    'Couples Toys': '/categories/icon_couples.svg',
-    'BDSM & Bondage': '/categories/icon_bdsm.svg',
-    'Lingerie & Clothing': '/categories/icon_lingerie.svg',
-    'Supplements & Condoms': '/categories/icon_supplements.svg'
+    'Women Sex Toys': '/categories/circ_cat_vibrator_1783348478935.webp',
+    'Men Sex Toys': '/categories/circ_cat_male_1783348503157.webp',
+    'Couples Toys': '/categories/circ_cat_couples_1783348542596.webp',
+    'BDSM & Bondage': '/categories/circ_cat_bdsm_1783348555589.webp',
+    'Lingerie & Clothing': '/categories/circ_cat_lingerie.webp',
+    'Supplements & Condoms': '/categories/circ_cat_supplements.webp'
   };
 
   return (
