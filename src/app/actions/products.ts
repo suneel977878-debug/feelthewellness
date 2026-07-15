@@ -8,6 +8,15 @@ function mapDbProduct(p: any): Product {
   let parsedFeatures = [];
   try {
     parsedImages = typeof p.images === 'string' ? JSON.parse(p.images) : (p.images || []);
+    // Fix broken images: old products were stored in DB as .jpg but exist on disk as .webp
+    if (Array.isArray(parsedImages)) {
+      parsedImages = parsedImages.map((img: any) => {
+        if (typeof img === 'string' && img.match(/\/prod_\d+_\d+\.jpg$/)) {
+          return img.replace(/\.jpg$/, '.webp');
+        }
+        return img;
+      });
+    }
   } catch (e) {}
   try {
     parsedFeatures = typeof p.features === 'string' ? JSON.parse(p.features) : (p.features || []);

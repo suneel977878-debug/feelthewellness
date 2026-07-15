@@ -91,12 +91,12 @@ export default async function HomePage() {
 
   // Map category images
   const categoryImages: Record<string, string> = {
-    'Women Sex Toys': '/categories/circ_cat_vibrator_1783348478935.jpg',
-    'Men Sex Toys': '/categories/circ_cat_male_1783348503157.jpg',
-    'Couples Toys': '/categories/circ_cat_couples_1783348542596.jpg',
-    'BDSM & Bondage': '/categories/circ_cat_bdsm_1783348555589.jpg',
-    'Lingerie & Clothing': '/categories/circ_cat_lingerie.jpg',
-    'Supplements & Condoms': '/categories/circ_cat_supplements.jpg'
+    'Women Sex Toys': '/categories/icon_women.svg',
+    'Men Sex Toys': '/categories/icon_men.svg',
+    'Couples Toys': '/categories/icon_couples.svg',
+    'BDSM & Bondage': '/categories/icon_bdsm.svg',
+    'Lingerie & Clothing': '/categories/icon_lingerie.svg',
+    'Supplements & Condoms': '/categories/icon_supplements.svg'
   };
 
   return (
@@ -156,12 +156,12 @@ export default async function HomePage() {
             <h2 className="section-title">Sensual Collections</h2>
             <div className="categories-grid-home">
               {[
-                { name: 'Luxury Vibrators', category: 'Women Sex Toys', subcategory: 'Vibrators & Wands', image: '/categories/category_vibrators_1783346594785.jpg' },
-                { name: 'Male Strokers', category: 'Men Sex Toys', subcategory: 'Male Masturbators', image: '/categories/category_male_1783346614292.jpg' },
-                { name: 'Premium Dildos', category: 'Women Sex Toys', subcategory: 'Dildos', image: '/categories/category_dildos_1783346665693.jpg' },
-                { name: 'Couples Kits', category: 'Couples Toys', subcategory: 'All Toys', image: '/categories/category_couples_1783346624063.jpg' },
-                { name: 'BDSM Restraints', category: 'BDSM & Bondage', subcategory: 'Bondage & BDSM', image: '/categories/category_bdsm_1783346633974.jpg' },
-                { name: 'Intimate Wellness', category: 'Supplements & Condoms', subcategory: 'Lubricants', image: '/categories/category_wellness_1783346643070.jpg' }
+                { name: 'Luxury Vibrators', category: 'Women Sex Toys', subcategory: 'Vibrators & Wands', image: '/categories/category_vibrators_1783346594785.webp' },
+                { name: 'Male Strokers', category: 'Men Sex Toys', subcategory: 'Male Masturbators', image: '/categories/category_male_1783346614292.webp' },
+                { name: 'Premium Dildos', category: 'Women Sex Toys', subcategory: 'Dildos', image: '/categories/category_dildos_1783346665693.webp' },
+                { name: 'Couples Kits', category: 'Couples Toys', subcategory: 'All Toys', image: '/categories/category_couples_1783346624063.webp' },
+                { name: 'BDSM Restraints', category: 'BDSM & Bondage', subcategory: 'Bondage & BDSM', image: '/categories/category_bdsm_1783346633974.webp' },
+                { name: 'Intimate Wellness', category: 'Supplements & Condoms', subcategory: 'Lubricants', image: '/categories/category_wellness_1783346643070.webp' }
               ].map((subcat, idx) => {
                 const count = products.filter(p => p.category === subcat.category && (subcat.subcategory === 'All Toys' || p.subcategory === subcat.subcategory)).length;
                 return (
