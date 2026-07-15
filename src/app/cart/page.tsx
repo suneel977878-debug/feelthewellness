@@ -138,7 +138,7 @@ export default function CartPage() {
                           {/* Item visual */}
                           <div className="cart-item-visual" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <img 
-                              src={item.product.images?.[0] || '/hero.png'} 
+                              src={item.product.images?.[0] || '/hero.webp'} 
                               alt={item.product.name} 
                               style={{ 
                                 width: '64px', 

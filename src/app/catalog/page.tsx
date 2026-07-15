@@ -15,7 +15,7 @@ export default async function CatalogPage() {
       
       {/* Catalog Banner */}
       <section className="catalog-hero" style={{
-        background: 'linear-gradient(180deg, var(--bg-primary) 0%, transparent 100%), url("/hero.png")',
+        background: 'linear-gradient(180deg, var(--bg-primary) 0%, transparent 100%), url("/hero.webp")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         padding: '40px 0',

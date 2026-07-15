@@ -72,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Realistic image photo wrapper */}
         <div className="product-photo-wrapper">
           <Image 
-            src={imageUrl || '/hero.png'} 
+            src={imageUrl || '/hero.webp'} 
             alt={product.name || 'Product'} 
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

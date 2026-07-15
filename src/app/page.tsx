@@ -128,7 +128,7 @@ export default async function HomePage() {
               { id: 'lingerie', dbName: 'Lingerie & Clothing', displayName: 'LINGERIE' },
               { id: 'supplements', dbName: 'Supplements & Condoms', displayName: 'WELLNESS' }
             ].map((cat, index) => {
-              const imgSrc = categoryImages[cat.dbName] || '/hero.png';
+              const imgSrc = categoryImages[cat.dbName] || '/hero.webp';
               return (
                 <Link href={`/catalog?category=${encodeURIComponent(cat.dbName)}`} key={`quick-${cat.id}`} className="circular-category-item">
                   <div className="circular-image-wrapper">
