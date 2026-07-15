@@ -19,7 +19,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FeelTheWelllness | Ultimate Wellness & Premium Adult Store",
+  title: "FeelTheWellness | Ultimate Wellness & Premium Adult Store",
   description: "Indulge in the finest luxury sex toys designed for ultimate intimacy, sensory gratification, and sexual pleasure. Dispatched in 100% discreet packaging.",
 };
 

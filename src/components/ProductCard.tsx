@@ -47,33 +47,45 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const imageUrl = product.images[0];
   const brandName = getProductBrand(product.id, product.category);
-  
+
   // Original crossed out price calculation
   const originalPrice = Math.round(product.price / (1 - (product.discountPercent || 0) / 100));
+  const savedAmount = originalPrice - product.price;
 
-  // Determine top-right label
-  const getBadgeStatus = () => {
-    if (product.isBestSeller) return <span className="card-badge-status badge-bestseller">BEST SELLER</span>;
-    if (product.isNew) return <span className="card-badge-status badge-new-status">NEW 💅</span>;
-    return <span className="card-badge-status badge-hot-deal">HOT DEAL 🔥</span>;
-  };
+  // Render stacked badges — both show if product qualifies for both
+  const renderBadges = () => (
+    <div className="card-badges-stack">
+      {product.isBestSeller && (
+        <span className="card-badge-status badge-bestseller">BEST SELLER</span>
+      )}
+      {product.isNew && (
+        <span className="card-badge-status badge-new-status">NEW 💅</span>
+      )}
+      {!product.isBestSeller && !product.isNew && (
+        <span className="card-badge-status badge-hot-deal">HOT DEAL 🔥</span>
+      )}
+    </div>
+  );
 
   return (
     <Link href={`/product/${product.id}`} className="product-card">
       <div className="product-image-area">
-        {/* Top-left negative discount pill */}
-        {Boolean(product.isOnSale) && (
-          <span className="card-badge-discount">-{product.discountPercent}%</span>
+        {/* Top-left discount badge — professional two-line style */}
+        {Boolean(product.isOnSale) && product.discountPercent && (
+          <div className="card-badge-discount">
+            <span className="discount-save">SAVE ₹{savedAmount.toLocaleString('en-IN')}</span>
+            <span className="discount-pct">{product.discountPercent}% OFF</span>
+          </div>
         )}
-        
-        {/* Top-right status badge */}
-        {getBadgeStatus()}
-        
+
+        {/* Top-right stacked status badges */}
+        {renderBadges()}
+
         {/* Realistic image photo wrapper */}
         <div className="product-photo-wrapper">
-          <Image 
-            src={imageUrl || '/hero.webp'} 
-            alt={product.name || 'Product'} 
+          <Image
+            src={imageUrl || '/hero.webp'}
+            alt={product.name || 'Product'}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="product-photo"
@@ -84,16 +96,16 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="watermark-sub">PRO COLLECTION</span>
           </div>
         </div>
-        
+
         {/* Bottom pink slide overlay */}
         <div className="view-product-overlay">
           VIEW PRODUCT
         </div>
 
         {/* Floating Quick Add Icon Button */}
-        <button 
+        <button
           type="button"
-          className="quick-add-icon-btn" 
+          className="quick-add-icon-btn"
           onClick={handleQuickAdd}
           aria-label={`Add ${product.name} to Cart`}
           title="Quick Add to Cart"

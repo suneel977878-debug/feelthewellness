@@ -3,8 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['lavish-bucket-vastness.ngrok-free.dev'],
   images: {
-    unoptimized: true,
-    qualities: [50, 75, 85, 100],
+    // Next.js optimization enabled — auto WebP, responsive sizes, lazy loading
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 64, 96, 128, 256],
+    formats: ['image/webp'],
+    minimumCacheTTL: 86400, // Cache optimized images for 24 hours
     remotePatterns: [
       {
         protocol: 'https',

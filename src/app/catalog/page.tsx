@@ -6,14 +6,11 @@ import { getProducts } from '../actions/products';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CatalogPage() {
+async function CatalogData() {
   const products = await getProducts();
-
+  
   return (
-    <div className="catalog-layout">
-      <Header />
-      
-      {/* Catalog Banner */}
+    <>
       <section className="catalog-hero" style={{
         background: 'linear-gradient(180deg, var(--bg-primary) 0%, transparent 100%), url("/hero.webp")',
         backgroundSize: 'cover',
@@ -27,7 +24,16 @@ export default async function CatalogPage() {
           <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>Explore our premium collection of {products.length} luxury intimacy objects designed for ultimate sexual pleasure and fulfillment.</p>
         </div>
       </section>
+      <CatalogClient products={products} />
+    </>
+  );
+}
 
+export default function CatalogPage() {
+  return (
+    <div className="catalog-layout">
+      <Header />
+      
       <Suspense fallback={
         <div className="flex-center" style={{ minHeight: '60vh', flexDirection: 'column', gap: '20px' }}>
           <div style={{
@@ -41,7 +47,7 @@ export default async function CatalogPage() {
           <p>Unlocking sensual delights...</p>
         </div>
       }>
-        <CatalogClient products={products} />
+        <CatalogData />
       </Suspense>
       <Footer />
     </div>

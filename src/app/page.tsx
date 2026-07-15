@@ -164,7 +164,6 @@ export default async function HomePage() {
                 { name: 'Intimate Wellness', category: 'Supplements & Condoms', subcategory: 'Lubricants', image: '/categories/category_wellness_1783346643070.webp' }
               ].map((subcat, idx) => {
                 const count = products.filter(p => p.category === subcat.category && (subcat.subcategory === 'All Toys' || p.subcategory === subcat.subcategory)).length;
-                if (count === 0) return null;
                 return (
                   <Link href={`/catalog?category=${encodeURIComponent(subcat.category)}&subcategory=${encodeURIComponent(subcat.subcategory)}`} key={`subcat-${idx}`} className="vibrant-category-card">
                     <Image 
@@ -176,7 +175,7 @@ export default async function HomePage() {
                     />
                     <div className="cat-content">
                       <h3>{subcat.name}</h3>
-                      <span>{count} Products ➔</span>
+                      <span>{count > 0 ? `${count} Products` : 'Explore'} ➔</span>
                     </div>
                   </Link>
                 );

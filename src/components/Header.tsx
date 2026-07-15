@@ -18,6 +18,10 @@ export default function Header() {
       }
     };
     document.addEventListener("contextmenu", handleContextMenu);
+    
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
 
     const savedTheme = localStorage.getItem('feel_the_wellness_theme') as 'dark' | 'light';
     if (savedTheme) {
@@ -44,7 +48,11 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="desktop-nav">
-          {/* Links removed as requested */}
+          <Link href="/" className="nav-link">Home</Link>
+          <Link href="/catalog?category=Women%20Sex%20Toys&subcategory=Vibrators%20%26%20Wands" className="nav-link">Vibrators</Link>
+          <Link href="/catalog?category=Men%20Sex%20Toys" className="nav-link">Male Pleasure</Link>
+          <Link href="/catalog?category=Couples%20Toys" className="nav-link">Couples</Link>
+          <Link href="/catalog" className="nav-link">All Products</Link>
         </nav>
 
         <div className="header-actions">

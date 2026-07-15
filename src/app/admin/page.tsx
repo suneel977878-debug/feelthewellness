@@ -157,6 +157,11 @@ export default function AdminPage() {
   const [formFeatures, setFormFeatures] = useState('');
   const [formIsNew, setFormIsNew] = useState(false);
   const [formIsBestSeller, setFormIsBestSeller] = useState(false);
+  const [formIsOnSale, setFormIsOnSale] = useState(false);
+  const [formDiscountPercent, setFormDiscountPercent] = useState('');
+  const [formRating, setFormRating] = useState('4.8');
+  const [formReviews, setFormReviews] = useState('1');
+  const [formImages, setFormImages] = useState<string[]>(['/products/prod_1_0.jpg']);
 
   // Promo Form states
   const [promoCode, setPromoCode] = useState('');
@@ -207,6 +212,11 @@ export default function AdminPage() {
     setFormFeatures('Rechargeable, Water-resistant, Whisper quiet');
     setFormIsNew(true);
     setFormIsBestSeller(false);
+    setFormIsOnSale(false);
+    setFormDiscountPercent('');
+    setFormRating('4.8');
+    setFormReviews('1');
+    setFormImages(['/products/prod_1_0.jpg']);
     setIsModalOpen(true);
   };
 
@@ -223,6 +233,11 @@ export default function AdminPage() {
     setFormFeatures(product.features.join(', '));
     setFormIsNew(!!product.isNew);
     setFormIsBestSeller(!!product.isBestSeller);
+    setFormIsOnSale(!!product.isOnSale);
+    setFormDiscountPercent(product.discountPercent ? product.discountPercent.toString() : '');
+    setFormRating(product.rating ? product.rating.toString() : '4.8');
+    setFormReviews(product.reviews ? product.reviews.toString() : '1');
+    setFormImages(product.images && product.images.length > 0 ? product.images : ['/products/prod_1_0.jpg']);
     setIsModalOpen(true);
   };
 
@@ -256,9 +271,11 @@ export default function AdminPage() {
       features: featuresArray.length > 0 ? featuresArray : ['Premium Medical Grade Silicone'],
       isNew: formIsNew,
       isBestSeller: formIsBestSeller,
-      rating: editingProduct ? editingProduct.rating : 4.8,
-      reviews: editingProduct ? editingProduct.reviews : 1,
-      images: editingProduct ? editingProduct.images : ['/products/prod_1_0.jpg'],
+      isOnSale: formIsOnSale,
+      discountPercent: parseFloat(formDiscountPercent) || null,
+      rating: parseFloat(formRating) || 5.0,
+      reviews: parseInt(formReviews, 10) || 0,
+      images: formImages.length > 0 ? formImages : ['/products/prod_1_0.jpg'],
     };
 
     if (editingProduct) {
@@ -1197,6 +1214,90 @@ export default function AdminPage() {
                 />
               </div>
 
+              <div className="form-group">
+                <label className="form-label">Product Images</label>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  {formImages.map((img, index) => (
+                    <div key={index} style={{ position: 'relative', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', width: '80px', height: '80px' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img} alt="Product Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button 
+                        type="button" 
+                        style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '10px' }}
+                        onClick={() => setFormImages(prev => prev.filter((_, i) => i !== index))}
+                        title="Remove Image"
+                      >✕</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    id="new-image-url"
+                    type="text"
+                    className="form-input"
+                    placeholder="Enter new image URL..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const input = e.target as HTMLInputElement;
+                        if (input.value.trim()) {
+                          setFormImages(prev => [...prev, input.value.trim()]);
+                          input.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px' }}
+                    onClick={() => {
+                      const input = document.getElementById('new-image-url') as HTMLInputElement;
+                      if (input && input.value.trim()) {
+                        setFormImages(prev => [...prev, input.value.trim()]);
+                        input.value = '';
+                      }
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-row-grid">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="modal-rating">Rating</label>
+                  <input
+                    id="modal-rating"
+                    type="number"
+                    step="0.1"
+                    className="form-input"
+                    value={formRating}
+                    onChange={(e) => setFormRating(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="modal-reviews">Reviews</label>
+                  <input
+                    id="modal-reviews"
+                    type="number"
+                    className="form-input"
+                    value={formReviews}
+                    onChange={(e) => setFormReviews(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="modal-discount">Discount %</label>
+                  <input
+                    id="modal-discount"
+                    type="number"
+                    className="form-input"
+                    value={formDiscountPercent}
+                    onChange={(e) => setFormDiscountPercent(e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="checkboxes-form-row">
                 <label className="chk-container">
                   <input type="checkbox" checked={formIsNew} onChange={(e) => setFormIsNew(e.target.checked)} />
@@ -1205,6 +1306,10 @@ export default function AdminPage() {
                 <label className="chk-container">
                   <input type="checkbox" checked={formIsBestSeller} onChange={(e) => setFormIsBestSeller(e.target.checked)} />
                   <span>Mark as "Bestseller"</span>
+                </label>
+                <label className="chk-container">
+                  <input type="checkbox" checked={formIsOnSale} onChange={(e) => setFormIsOnSale(e.target.checked)} />
+                  <span>On Sale</span>
                 </label>
               </div>
 

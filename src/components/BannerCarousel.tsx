@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -59,37 +59,52 @@ export default function BannerCarousel() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isVisibleRef = useRef(true);
 
-  const resetTimer = () => {
+  const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
+      if (isVisibleRef.current) {
+        setCurrentIndex((prev) => (prev + 1) % banners.length);
+      }
     }, 5000);
-  };
+  }, []);
+
+  // IntersectionObserver: pause auto-slide when carousel is off-screen
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.3 }
+    );
+    const el = containerRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, []);
 
   useEffect(() => {
-    resetTimer();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
+    startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [startTimer]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
-    resetTimer();
+    startTimer();
   };
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
-    resetTimer();
+    startTimer();
   };
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-    resetTimer();
+    startTimer();
   };
 
   // Touch handlers
   const minSwipeDistance = 50;
-  
+
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -102,28 +117,29 @@ export default function BannerCarousel() {
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    if (isLeftSwipe) {
-      nextSlide();
-    }
-    if (isRightSwipe) {
-      prevSlide();
-    }
+    if (distance > minSwipeDistance) nextSlide();
+    if (distance < -minSwipeDistance) prevSlide();
   };
 
   return (
-    <div className="banner-carousel-container" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+    <div
+      ref={containerRef}
+      className="banner-carousel-container"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="carousel-slides" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
         {banners.map((banner, index) => (
           <div key={banner.id} className="carousel-slide">
             <Link href={banner.link} className="carousel-link">
-              <Image 
-                src={banner.src} 
-                alt={banner.alt} 
+              <Image
+                src={banner.src}
+                alt={banner.alt}
                 fill
-                priority={index === 0}
-                sizes="100vw"
+                priority={index === 0}          // Only first slide gets priority
+                loading={index === 0 ? undefined : 'lazy'} // Others lazy-load
+                sizes="(max-width: 768px) 100vw, 1100px"
                 className="carousel-image"
               />
             </Link>
@@ -148,9 +164,6 @@ export default function BannerCarousel() {
           />
         ))}
       </div>
-      
-
     </div>
   );
 }
-

@@ -35,8 +35,8 @@
   --border-radius: 14px;
   --border-radius-lg: 24px;
 
-  --bg-header: rgba(2, 22, 20, 0.85);
-  --bg-mobile-menu: rgba(2, 22, 20, 0.98);
+  --bg-header: rgba(20, 8, 12, 0.85);
+  --bg-mobile-menu: rgba(20, 8, 12, 0.98);
 }
 
 [data-theme="light"] {
@@ -318,7 +318,7 @@ p {
   animation: fadeIn 0.8s var(--transition-smooth) forwards;
 }
 
-.animate-pulse-glow {
+.animate-pulse-glow:hover {
   animation: pulseGlow 3s infinite ease-in-out;
 }
 
@@ -344,6 +344,7 @@ p {
   animation-timing-function: linear;
   animation-name: ticker;
   animation-duration: 20s;
+  will-change: transform;
 }
 
 .ticker-item {
@@ -705,6 +706,8 @@ p {
 .reviews-section {
   padding: 60px 0;
   background: var(--bg-secondary);
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
 }
 
 .reviews-grid {
@@ -981,6 +984,8 @@ img {
 .cta-banner-section,
 .newsletter-section {
   padding: 60px 0;
+  content-visibility: auto;
+  contain-intrinsic-size: 600px;
 }
 
 @media (max-width: 768px) {
@@ -1218,43 +1223,62 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
           text-transform: uppercase;
         }
 
-        /* Top-left negative discount pill style */
+        /* Top-left premium discount badge */
         .card-badge-discount {
           position: absolute;
           top: 12px;
           left: 12px;
           z-index: 5;
-          background: #731535;
-          color: #ff91b8;
-          font-size: 0.75rem;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 4px;
-          border: 1px solid rgba(255, 42, 133, 0.2);
+          background: linear-gradient(135deg, #d81b60, #a00c42);
+          color: #fff;
+          font-weight: 800;
+          padding: 6px 10px;
+          border-radius: 6px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(216, 27, 96, 0.4);
+        }
+        
+        .discount-save {
+          font-size: 0.6rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          opacity: 0.9;
+        }
+        
+        .discount-pct {
+          font-size: 0.9rem;
+          line-height: 1.1;
         }
 
-        [data-theme="light"] .card-badge-discount {
-          background: #ffe3ec;
-          color: var(--accent);
-        }
-
-        /* Top-right status badge style */
-        .card-badge-status {
+        /* Stacked Top-right status badges */
+        .card-badges-stack {
           position: absolute;
           top: 12px;
-          right: 50px; /* Moved slightly left to make room for quick add on mobile */
+          right: 50px;
           z-index: 5;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          align-items: flex-end;
+        }
+        
+        @media (min-width: 768px) {
+          .card-badges-stack {
+            right: 12px;
+          }
+        }
+        
+        .card-badge-status {
           font-size: 0.65rem;
           font-weight: 700;
           padding: 4px 10px;
           border-radius: 4px;
           letter-spacing: 0.05em;
-        }
-        
-        @media (min-width: 768px) {
-          .card-badge-status {
-            right: 12px; /* Reset for desktop since quick add moves to bottom */
-          }
+          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .badge-bestseller {
