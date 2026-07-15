@@ -330,7 +330,7 @@ p {
 .ticker-wrap {
   width: 100%;
   overflow: hidden;
-  background-color: var(--accent);
+  background: linear-gradient(90deg, #d81b60 0%, var(--accent) 100%);
   padding: 8px 0;
   white-space: nowrap;
 }
@@ -519,7 +519,7 @@ p {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  height: 180px;
+  height: 140px;
   padding: 16px;
   transition: all var(--transition-smooth);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -637,9 +637,9 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
-  min-width: 115px;
+  min-width: 90px;
   scroll-snap-align: start;
   transition: transform var(--transition-smooth);
 }
@@ -682,7 +682,7 @@ p {
 
 .circular-image-wrapper img[src$=".svg"] {
   object-fit: contain;
-  padding: 20px;
+  padding: 14px;
 }
 
 .quick-category-label {
@@ -691,9 +691,8 @@ p {
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
-  white-space: normal;
-  max-width: 110px;
-  word-wrap: break-word;
+  white-space: nowrap;
+  max-width: 100%;
 }
 @media (min-width: 768px) {
   .quick-category-label {

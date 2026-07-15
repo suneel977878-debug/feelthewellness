@@ -17,7 +17,7 @@ interface Banner {
 const banners: Banner[] = [
   {
     id: 'sale_1',
-    src: '/banners/banner_sale_new_1.jpg',
+    src: '/banners/banner_sale_new_1.webp',
     alt: 'Flash Sale - Up to 60% Off',
     link: '/catalog',
     headline: 'Sensual Summer Sale',
@@ -26,7 +26,7 @@ const banners: Banner[] = [
   },
   {
     id: 'sale_2',
-    src: '/banners/banner_sale_2.jpg',
+    src: '/banners/banner_sale_2.webp',
     alt: 'Midnight Indulgence Sale - Up to 50% Off',
     link: '/catalog',
     headline: 'Midnight Indulgence',
@@ -35,7 +35,7 @@ const banners: Banner[] = [
   },
   {
     id: 'sale_3',
-    src: '/banners/banner_sale_3.jpg',
+    src: '/banners/banner_sale_3.webp',
     alt: 'Massive Adult Boutique Sale',
     link: '/catalog?category=Women%20Sex%20Toys',
     headline: 'For Her Pleasure',
@@ -44,7 +44,7 @@ const banners: Banner[] = [
   },
   {
     id: 'sale_4',
-    src: '/banners/banner_sale_4.jpg',
+    src: '/banners/banner_sale_4.webp',
     alt: 'Intimate Couples Mega Discount',
     link: '/catalog?category=Couple%27s%20Play',
     headline: 'Better Together',

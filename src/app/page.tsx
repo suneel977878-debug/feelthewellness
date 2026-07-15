@@ -121,12 +121,12 @@ export default async function HomePage() {
         <section className="quick-nav-section">
           <div className="quick-nav-scroll">
             {[
-              { id: 'men', dbName: 'Men Sex Toys', displayName: 'MEN SEX TOYS' },
-              { id: 'women', dbName: 'Women Sex Toys', displayName: 'WOMEN SEX TOYS' },
-              { id: 'couples', dbName: 'Couples Toys', displayName: 'COUPLES & LGBTQ' },
-              { id: 'bdsm', dbName: 'BDSM & Bondage', displayName: 'BONDAGE & BDSM' },
-              { id: 'lingerie', dbName: 'Lingerie & Clothing', displayName: 'SEXY LINGERIE & CLOTHING' },
-              { id: 'supplements', dbName: 'Supplements & Condoms', displayName: 'SUPPLEMENTS AND CONDOMS' }
+              { id: 'men', dbName: 'Men Sex Toys', displayName: "MEN'S TOYS" },
+              { id: 'women', dbName: 'Women Sex Toys', displayName: "WOMEN'S TOYS" },
+              { id: 'couples', dbName: 'Couples Toys', displayName: 'COUPLES' },
+              { id: 'bdsm', dbName: 'BDSM & Bondage', displayName: 'BDSM' },
+              { id: 'lingerie', dbName: 'Lingerie & Clothing', displayName: 'LINGERIE' },
+              { id: 'supplements', dbName: 'Supplements & Condoms', displayName: 'WELLNESS' }
             ].map((cat, index) => {
               const imgSrc = categoryImages[cat.dbName] || '/hero.png';
               return (
@@ -164,6 +164,7 @@ export default async function HomePage() {
                 { name: 'Intimate Wellness', category: 'Supplements & Condoms', subcategory: 'Lubricants', image: '/categories/category_wellness_1783346643070.webp' }
               ].map((subcat, idx) => {
                 const count = products.filter(p => p.category === subcat.category && (subcat.subcategory === 'All Toys' || p.subcategory === subcat.subcategory)).length;
+                if (count === 0) return null;
                 return (
                   <Link href={`/catalog?category=${encodeURIComponent(subcat.category)}&subcategory=${encodeURIComponent(subcat.subcategory)}`} key={`subcat-${idx}`} className="vibrant-category-card">
                     <Image 
