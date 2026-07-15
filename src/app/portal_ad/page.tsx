@@ -272,7 +272,7 @@ export default function AdminPage() {
       isNew: formIsNew,
       isBestSeller: formIsBestSeller,
       isOnSale: formIsOnSale,
-      discountPercent: parseFloat(formDiscountPercent) || null,
+      discountPercent: parseFloat(formDiscountPercent) || undefined,
       rating: parseFloat(formRating) || 5.0,
       reviews: parseInt(formReviews, 10) || 0,
       images: formImages.length > 0 ? formImages : ['/products/prod_1_0.jpg'],

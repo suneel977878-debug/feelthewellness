@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: product.description.substring(0, 160),
       images: [
         {
-          url: product.image,
+          url: product.images[0] || '/hero.webp',
           width: 800,
           height: 800,
           alt: product.name,
