@@ -133,15 +133,16 @@ export default function BannerCarousel() {
         {banners.map((banner, index) => (
           <div key={banner.id} className="carousel-slide">
             <Link href={banner.link} className="carousel-link">
-              <Image
-                src={banner.src}
-                alt={banner.alt}
-                fill
-                priority={index === 0}          // Only first slide gets priority
-                loading={index === 0 ? undefined : 'lazy'} // Others lazy-load
-                sizes="(max-width: 768px) 100vw, 1100px"
-                className="carousel-image"
-              />
+                <Image
+                  src={banner.src}
+                  alt={banner.alt}
+                  fill
+                  priority={index === 0}          // Only first slide gets priority
+                  fetchPriority={index === 0 ? 'high' : 'auto'} // Optimize LCP
+                  loading={index === 0 ? undefined : 'lazy'} // Others lazy-load
+                  sizes="(max-width: 768px) 100vw, 1100px"
+                  className="carousel-image"
+                />
             </Link>
           </div>
         ))}

@@ -8,11 +8,12 @@ import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
 
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addToCart } = useCart();
 
   const [isAdded, setIsAdded] = useState(false);
@@ -81,6 +82,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={imageUrl || '/hero.webp'}
             alt={product.name || 'Product'}
             fill
+            priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="product-photo"
             style={{ 

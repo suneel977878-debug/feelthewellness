@@ -136,6 +136,7 @@ export default async function HomePage() {
                       src={imgSrc}
                       alt={cat.displayName}
                       fill
+                      priority={true}
                       sizes="110px"
                       className="category-image"
                     />
@@ -193,9 +194,9 @@ export default async function HomePage() {
             </div>
             
             <div className="bestsellers-grid">
-              {featuredBestsellers.map((product) => (
+              {featuredBestsellers.map((product, idx) => (
                 <div key={product.id} className="grid-item-fade">
-                  <ProductCard product={product} />
+                  <ProductCard product={product} priority={idx < 4} />
                 </div>
               ))}
             </div>
