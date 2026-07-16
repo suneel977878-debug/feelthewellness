@@ -1682,4 +1682,23 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
           color: var(--accent);
           border-bottom-color: var(--accent);
         }
+
+        /* Related Products Grid */
+        .related-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 24px;
+          margin-top: 32px;
+        }
+        .related-item {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .quick-add-icon-btn.added {
+          background: var(--accent);
+          color: white;
+          border-color: var(--accent);
+          transform: scale(1.1);
+        }
       

@@ -19,8 +19,11 @@ export default function CatalogClient({ products }: { products: Product[] }) {
   const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
   const [expandedCategory, setExpandedCategory] = useState(initialCategory === 'All' ? '' : initialCategory);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [sortOption, setSortOption] = useState('popular');
-  const [priceRange, setPriceRange] = useState(100000); // Max price in list is ~90000
+  const sortOptionInit = 'popular';
+  const initialMaxPrice = products.reduce((max, p) => Math.max(max, p.price), 10000);
+  const [sortOption, setSortOption] = useState(sortOptionInit);
+  const [priceRange, setPriceRange] = useState(initialMaxPrice);
+  const [maxPrice] = useState(initialMaxPrice);
   const [showSaleOnly, setShowSaleOnly] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -84,7 +87,7 @@ export default function CatalogClient({ products }: { products: Product[] }) {
     setSelectedCategory('All');
     setSearchQuery('');
     setSortOption('popular');
-    setPriceRange(100000);
+    setPriceRange(maxPrice);
     setShowSaleOnly(false);
     router.push('/catalog');
   };
@@ -186,7 +189,7 @@ export default function CatalogClient({ products }: { products: Product[] }) {
               <input
                 type="range"
                 min="500"
-                max="100000"
+                max={maxPrice}
                 step="500"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}

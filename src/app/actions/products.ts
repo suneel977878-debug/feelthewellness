@@ -22,6 +22,11 @@ function mapDbProduct(p: any): Product {
     parsedFeatures = typeof p.features === 'string' ? JSON.parse(p.features) : (p.features || []);
   } catch (e) {}
 
+  let parsedImageCrops = [];
+  try {
+    parsedImageCrops = typeof p.imageCrops === 'string' ? JSON.parse(p.imageCrops) : (p.imageCrops || []);
+  } catch (e) {}
+
   return {
     id: p.id,
     name: p.name,
@@ -38,7 +43,11 @@ function mapDbProduct(p: any): Product {
     rating: p.rating,
     reviews: p.reviews,
     color: p.color,
-    silhouetteType: p.silhouetteType
+    silhouetteType: p.silhouetteType,
+    defaultZoom: p.defaultZoom || 1.0,
+    defaultZoomX: p.defaultZoomX || 50.0,
+    defaultZoomY: p.defaultZoomY || 50.0,
+    imageCrops: parsedImageCrops
   };
 }
 
@@ -81,14 +90,16 @@ export async function getRelatedProducts(category: string, excludeId: number, li
 
 export async function createProduct(data: Omit<Product, 'id'>) {
   const [result] = await pool.query(
-    `INSERT INTO Product (name, price, description, images, category, subcategory, features, isNew, isBestSeller, isOnSale, discountPercent, rating, reviews, color, silhouetteType, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    `INSERT INTO Product (name, price, description, images, category, subcategory, features, isNew, isBestSeller, isOnSale, discountPercent, rating, reviews, color, silhouetteType, defaultZoom, defaultZoomX, defaultZoomY, imageCrops, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [
       data.name, data.price, data.description, JSON.stringify(data.images),
       data.category, data.subcategory || null, JSON.stringify(data.features),
       data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
       data.discountPercent || null, data.rating || 5.0, data.reviews || 0,
-      data.color || null, data.silhouetteType || null
+      data.color || null, data.silhouetteType || null,
+      data.defaultZoom ?? 1.0, data.defaultZoomX ?? 50.0, data.defaultZoomY ?? 50.0,
+      JSON.stringify(data.imageCrops || [])
     ]
   );
   
@@ -99,13 +110,16 @@ export async function createProduct(data: Omit<Product, 'id'>) {
 
 export async function updateProduct(data: Product) {
   await pool.query(
-    `UPDATE Product SET name = ?, price = ?, description = ?, images = ?, category = ?, subcategory = ?, features = ?, isNew = ?, isBestSeller = ?, isOnSale = ?, discountPercent = ?, rating = ?, reviews = ?, color = ?, silhouetteType = ?, updatedAt = NOW() WHERE id = ?`,
+    `UPDATE Product SET name = ?, price = ?, description = ?, images = ?, category = ?, subcategory = ?, features = ?, isNew = ?, isBestSeller = ?, isOnSale = ?, discountPercent = ?, rating = ?, reviews = ?, color = ?, silhouetteType = ?, defaultZoom = ?, defaultZoomX = ?, defaultZoomY = ?, imageCrops = ?, updatedAt = NOW() WHERE id = ?`,
     [
       data.name, data.price, data.description, JSON.stringify(data.images),
       data.category, data.subcategory || null, JSON.stringify(data.features),
       data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
       data.discountPercent || null, data.rating || 5.0, data.reviews || 0,
-      data.color || null, data.silhouetteType || null, data.id
+      data.color || null, data.silhouetteType || null,
+      data.defaultZoom ?? 1.0, data.defaultZoomX ?? 50.0, data.defaultZoomY ?? 50.0,
+      JSON.stringify(data.imageCrops || []),
+      data.id
     ]
   );
   

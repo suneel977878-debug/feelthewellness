@@ -10,24 +10,19 @@ interface ProductCardProps {
   product: Product;
 }
 
-// Map products to realistic brand labels based on id/category
-export const getProductBrand = (id: number, category: string) => {
-  const brands = ['SATISFYER', 'FEELTHEWELLNESS', 'FIFTY SHADES OF GREY', 'ROCKS OFF', 'LELO', 'SANGYA'];
-  if (category === 'Vibrators & Wands') return brands[id % 2 === 0 ? 0 : 4];
-  if (category === 'Dildos & Realistic') return brands[1];
-  if (category === 'Male Pleasure') return brands[id % 2 === 0 ? 3 : 1];
-  if (category === "Couple's Play") return brands[4];
-  if (category === 'BDSM & Bondage') return brands[2];
-  return brands[id % brands.length];
-};
+
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+
+  const [isAdded, setIsAdded] = useState(false);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product, 1);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   const renderStars = (rating: number) => {
@@ -45,8 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     return stars;
   };
 
-  const imageUrl = product.images[0];
-  const brandName = getProductBrand(product.id, product.category);
+  const imageUrl = product.images?.[0];
 
   // Original crossed out price calculation
   const originalPrice = Math.round(product.price / (1 - (product.discountPercent || 0) / 100));
@@ -55,13 +49,13 @@ export default function ProductCard({ product }: ProductCardProps) {
   // Render stacked badges — both show if product qualifies for both
   const renderBadges = () => (
     <div className="card-badges-stack">
-      {product.isBestSeller && (
+      {Boolean(product.isBestSeller) && (
         <span className="card-badge-status badge-bestseller">BEST SELLER</span>
       )}
-      {product.isNew && (
+      {Boolean(product.isNew) && (
         <span className="card-badge-status badge-new-status">NEW 💅</span>
       )}
-      {!product.isBestSeller && !product.isNew && (
+      {!Boolean(product.isBestSeller) && !Boolean(product.isNew) && (
         <span className="card-badge-status badge-hot-deal">HOT DEAL 🔥</span>
       )}
     </div>
@@ -71,7 +65,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <Link href={`/product/${product.id}`} className="product-card">
       <div className="product-image-area">
         {/* Top-left discount badge — professional two-line style */}
-        {Boolean(product.isOnSale) && product.discountPercent && (
+        {Boolean(product.isOnSale) && (product.discountPercent || 0) > 0 && (
           <div className="card-badge-discount">
             <span className="discount-save">SAVE ₹{savedAmount.toLocaleString('en-IN')}</span>
             <span className="discount-pct">{product.discountPercent}% OFF</span>
@@ -89,6 +83,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="product-photo"
+            style={{ 
+              objectFit: 'contain',
+              transform: `scale(${product.defaultZoom || 1.0})`,
+              transformOrigin: `${product.defaultZoomX || 50}% ${product.defaultZoomY || 50}%`
+            }}
           />
           <div className="premium-vignette"></div>
           <div className="premium-watermark">
@@ -105,21 +104,27 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Floating Quick Add Icon Button */}
         <button
           type="button"
-          className="quick-add-icon-btn"
+          className={`quick-add-icon-btn ${isAdded ? 'added' : ''}`}
           onClick={handleQuickAdd}
           aria-label={`Add ${product.name} to Cart`}
           title="Quick Add to Cart"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+          {isAdded ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          )}
         </button>
       </div>
 
       <div className="product-info-area">
         {/* Brand label in small uppercase letters */}
-        <span className="product-brand">{brandName}</span>
+        <span className="product-brand">FeelTheWellness</span>
         
         {/* Product Title */}
         <h3 className="product-title">{product.name}</h3>

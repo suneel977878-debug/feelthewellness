@@ -25,6 +25,11 @@ model Product {
   reviews         Int         @default(0)
   color           String
   silhouetteType  String
+  defaultZoom     Float?      @default(1.0)
+  defaultZoomX    Float?      @default(50.0)
+  defaultZoomY    Float?      @default(50.0)
+  imageCrops      String?     @db.Text
+
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   orderItems      OrderItem[]

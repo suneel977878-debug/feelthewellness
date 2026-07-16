@@ -9,26 +9,11 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  // Load and apply theme on mount (prevents SSR hydration mismatch)
+  // Sync theme with local storage on mount
   useEffect(() => {
-    // Anti-theft: prevent right-click on images only
-    const handleContextMenu = (e: MouseEvent) => {
-      if (e.target && (e.target as HTMLElement).tagName === 'IMG') {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("contextmenu", handleContextMenu);
-    
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-    };
-
     const savedTheme = localStorage.getItem('feel_the_wellness_theme') as 'dark' | 'light';
     if (savedTheme) {
       setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
     }
   }, []);
 

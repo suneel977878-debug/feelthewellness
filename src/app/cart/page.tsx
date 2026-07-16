@@ -7,6 +7,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ProductCard from '../../components/ProductCard';
 import { useCart, PromoCode } from '../../context/CartContext';
+import { createOrder } from '../actions/orders';
 
 export default function CartPage() {
   const router = useRouter();
@@ -81,16 +82,29 @@ export default function CartPage() {
 
     setIsSubmitting(true);
 
-    // Cache customer details temporarily so the payment-status page can log the order
-    localStorage.setItem('lp_last_customer_name', fullName);
-    localStorage.setItem('lp_last_customer_phone', phoneNumber);
-    localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
-
     try {
-      // Simulate slight processing latency
-      await new Promise(resolve => setTimeout(resolve, 800));
-
+      // We create the order in the database immediately as PENDING.
+      // This prevents data loss if localStorage is cleared.
       const orderId = `LP-ORD-REG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      await createOrder({
+        orderId: orderId,
+        amount: orderTotal,
+        status: 'PENDING',
+        utr: utrNumber.trim(),
+        paymentApp: paymentApp,
+        customer: {
+          name: fullName,
+          phone: phoneNumber,
+          address: `${address}, ${city}, ${stateName} - ${zipCode}`
+        },
+        items: cart.map(item => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity
+        }))
+      });
 
       // Pass the PENDING status directly to the success page
       const queryParams = new URLSearchParams({
@@ -144,7 +158,6 @@ export default function CartPage() {
                                 width: '64px', 
                                 height: '64px', 
                                 objectFit: 'contain',
-                                filter: `hue-rotate(${(item.product.id * 53) % 360}deg)`,
                                 borderRadius: '4px'
                               }}
                             />
@@ -691,8 +704,14 @@ export default function CartPage() {
 
         .form-row-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr;
           gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+          .form-row-grid {
+            grid-template-columns: 1fr 1fr;
+          }
         }
 
         .payment-method-badge {

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import ProductCard, { getProductBrand } from '../../../components/ProductCard';
+import ProductCard from '../../../components/ProductCard';
 import { useCart } from '../../../context/CartContext';
 import { Product } from '../../../data/products';
 
@@ -18,16 +18,7 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
   
-  // Image zoom state
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
-  const [isZooming, setIsZooming] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomPos({ x, y });
-  };
+  // Image zoom state removed for user
 
   // Generate the 4 gallery images for the product dynamically
   const galleryImages = useMemo(() => {
@@ -102,19 +93,16 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
             
             {/* Left: Product Visual & Gallery Viewport */}
             <div className="showcase-visual-area">
-              {product.isBestSeller && <span className="badge badge-accent visual-badge">Bestseller</span>}
-              {product.isNew && <span className="badge badge-new visual-badge">New</span>}
-              {product.isOnSale && <span className="badge card-badge-sale visual-badge-sale">-{product.discountPercent}%</span>}
+              {Boolean(product.isBestSeller) && <span className="badge badge-accent visual-badge">Bestseller</span>}
+              {Boolean(product.isNew) && <span className="badge badge-new visual-badge">New</span>}
+              {Boolean(product.isOnSale) && <span className="badge card-badge-sale visual-badge-sale">-{product.discountPercent}%</span>}
               
               {/* Main Viewport */}
               <div className="detail-photo-viewport flex-center">
                 {galleryImages[activeImageIndex] && (
                   <div 
                     className="premium-image-wrapper"
-                    onMouseMove={handleMouseMove}
-                    onMouseEnter={() => setIsZooming(true)}
-                    onMouseLeave={() => setIsZooming(false)}
-                    style={{ cursor: isZooming ? 'zoom-in' : 'pointer', overflow: 'hidden' }}
+                    style={{ overflow: 'hidden' }}
                   >
                     <img 
                       src={galleryImages[activeImageIndex].src} 
@@ -125,13 +113,12 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
                         height: '100%', 
                         objectFit: 'contain',
                         mixBlendMode: 'multiply',
-                        transition: isZooming ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        transform: isZooming ? 'scale(2.5)' : 'scale(1)',
-                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                        transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        transform: `scale(${product.imageCrops?.[activeImageIndex]?.zoom ?? product.defaultZoom ?? 1.0})`,
+                        transformOrigin: `${product.imageCrops?.[activeImageIndex]?.x ?? product.defaultZoomX ?? 50}% ${product.imageCrops?.[activeImageIndex]?.y ?? product.defaultZoomY ?? 50}%`,
                         ...galleryImages[activeImageIndex].style
                       }}
                     />
-                    {!isZooming && (
                       <>
                         <div className="premium-vignette"></div>
                         <div className="premium-watermark">
@@ -139,7 +126,6 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
                           <span className="watermark-sub">PRO COLLECTION</span>
                         </div>
                       </>
-                    )}
                   </div>
                 )}
               </div>
@@ -181,7 +167,7 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
                 textTransform: 'uppercase',
                 marginBottom: '8px',
                 display: 'block'
-              }}>{getProductBrand(product.id, product.category)}</span>
+              }}>{'FeelTheWellness'}</span>
               <span className="detail-category">{product.category}</span>
               <h1 className="detail-title">{product.name}</h1>
               
@@ -197,7 +183,7 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
               <div className="detail-price-row">
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
                   <span className="detail-price">₹{product.price.toLocaleString('en-IN')}</span>
-                  {product.isOnSale && (
+                  {Boolean(product.isOnSale) && (
                     <span className="detail-original-price">
                       ₹{Math.round(product.price / (1 - (product.discountPercent || 0) / 100)).toLocaleString('en-IN')}
                     </span>

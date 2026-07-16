@@ -24,9 +24,12 @@ function PaymentStatusContent() {
   const utr = searchParams.get('utr') || '';
   const paymentApp = searchParams.get('app') || '';
 
+  const hasSubmitted = React.useRef(false);
+
   // Record order and clear cart if transaction succeeded or is pending
   useEffect(() => {
-    if ((isSuccess || isPending) && cart.length > 0) {
+    if ((isSuccess || isPending) && cart.length > 0 && !hasSubmitted.current) {
+      hasSubmitted.current = true;
       createOrder({
         orderId: orderId,
         amount: parseFloat(amount),

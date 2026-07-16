@@ -89,7 +89,27 @@ export async function getOrderByDisplayId(displayId: string): Promise<Order | nu
   }
 }
 
+export async function verifyAndGetOrder(displayId: string, phone: string): Promise<Order | null> {
+  const order = await getOrderByDisplayId(displayId);
+  if (!order) return null;
+  
+  // Basic normalization for comparison (strip spaces/dashes)
+  const cleanPhone = phone.replace(/\D/g, '');
+  const orderPhone = order.customer.phone.replace(/\D/g, '');
+  
+  if (cleanPhone === orderPhone || phone.toLowerCase() === order.customer.phone.toLowerCase()) {
+    return order;
+  }
+  return null;
+}
+
 export async function createOrder(data: Omit<Order, 'id' | 'date'>) {
+  // Check if order already exists to prevent duplicate insertions due to React Strict Mode double mounting
+  const existingOrder = await getOrderByDisplayId(data.orderId);
+  if (existingOrder) {
+    return existingOrder;
+  }
+
   const [result] = await pool.query(
     `INSERT INTO \`Order\` (orderId, amount, status, deliveryStatus, deliveryNote, utr, paymentApp, customerName, customerPhone, customerAddress, createdAt, updatedAt)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
@@ -108,14 +128,7 @@ export async function createOrder(data: Omit<Order, 'id' | 'date'>) {
     );
   }
   
-  const [rows] = await pool.query('SELECT * FROM `Order` WHERE id = ?', [insertId]);
-  const order = (rows as any[])[0];
-  order.date = order.createdAt;
-  
-  const [itemRows] = await pool.query('SELECT * FROM OrderItem WHERE orderId = ?', [insertId]);
-  order.items = itemRows;
-  
-  return mapDbOrder(order);
+  return await getOrderByDisplayId(data.orderId) as Order;
 }
 
 export async function updateOrderStatus(orderId: string, status: 'VERIFIED' | 'FAILED') {

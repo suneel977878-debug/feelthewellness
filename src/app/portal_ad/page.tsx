@@ -162,6 +162,11 @@ export default function AdminPage() {
   const [formRating, setFormRating] = useState('4.8');
   const [formReviews, setFormReviews] = useState('1');
   const [formImages, setFormImages] = useState<string[]>(['/products/prod_1_0.jpg']);
+  const [formDefaultZoom, setFormDefaultZoom] = useState('1.0');
+  const [formDefaultZoomX, setFormDefaultZoomX] = useState('50.0');
+  const [formDefaultZoomY, setFormDefaultZoomY] = useState('50.0');
+  const [formImageCrops, setFormImageCrops] = useState<{zoom: number, x: number, y: number}[]>([]);
+  const [activePreviewIndex, setActivePreviewIndex] = useState(0);
 
   // Promo Form states
   const [promoCode, setPromoCode] = useState('');
@@ -217,6 +222,11 @@ export default function AdminPage() {
     setFormRating('4.8');
     setFormReviews('1');
     setFormImages(['/products/prod_1_0.jpg']);
+    setFormDefaultZoom('1.0');
+    setFormDefaultZoomX('50.0');
+    setFormDefaultZoomY('50.0');
+    setFormImageCrops([{zoom: 1.0, x: 50, y: 50}]);
+    setActivePreviewIndex(0);
     setIsModalOpen(true);
   };
 
@@ -238,6 +248,24 @@ export default function AdminPage() {
     setFormRating(product.rating ? product.rating.toString() : '4.8');
     setFormReviews(product.reviews ? product.reviews.toString() : '1');
     setFormImages(product.images && product.images.length > 0 ? product.images : ['/products/prod_1_0.jpg']);
+    setFormDefaultZoom(product.defaultZoom ? product.defaultZoom.toString() : '1.0');
+    setFormDefaultZoomX(product.defaultZoomX ? product.defaultZoomX.toString() : '50.0');
+    setFormDefaultZoomY(product.defaultZoomY ? product.defaultZoomY.toString() : '50.0');
+    
+    const initialImages = product.images && product.images.length > 0 ? product.images : ['/products/prod_1_0.jpg'];
+    const initialCrops = initialImages.map((_, i) => {
+      if (product.imageCrops && product.imageCrops[i]) {
+        return product.imageCrops[i];
+      }
+      return {
+        zoom: product.defaultZoom || 1.0,
+        x: product.defaultZoomX || 50,
+        y: product.defaultZoomY || 50
+      };
+    });
+    setFormImageCrops(initialCrops);
+    setActivePreviewIndex(0);
+    
     setIsModalOpen(true);
   };
 
@@ -276,6 +304,10 @@ export default function AdminPage() {
       rating: parseFloat(formRating) || 5.0,
       reviews: parseInt(formReviews, 10) || 0,
       images: formImages.length > 0 ? formImages : ['/products/prod_1_0.jpg'],
+      defaultZoom: parseFloat(formDefaultZoom) || 1.0,
+      defaultZoomX: parseFloat(formDefaultZoomX) || 50.0,
+      defaultZoomY: parseFloat(formDefaultZoomY) || 50.0,
+      imageCrops: formImageCrops,
     };
 
     if (editingProduct) {
@@ -313,36 +345,34 @@ export default function AdminPage() {
     window.location.href = '/portal_ad';
   };
 
-  if (!isAuthorized) {
-    return (
-      <div className="admin-app-container flex-center" style={{ minHeight: '100vh', flexDirection: 'column' }}>
-        <Header />
-        <div className="admin-login-card flex-center" style={{ flex: 1 }}>
-          <div className="admin-logo">FeelThe<span style={{ color: 'var(--accent)' }}>Wellness</span></div>
-          <h2>Administration Portal</h2>
-          <p>This area is restricted to authorized store staff. Please enter your passcode to access the portal.</p>
-          <form className="admin-login-form" onSubmit={handleLoginSubmit}>
-            <div className="form-group" style={{ marginBottom: '16px' }}>
-              <input 
-                type="password"
-                className="input-field passcode-input"
-                placeholder="••••••••••"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                autoFocus
-              />
-            </div>
-            {authError && <div className="admin-auth-error" style={{ marginBottom: '16px', padding: '12px', borderRadius: '4px' }}>{authError}</div>}
-            <button type="submit" className="btn btn-primary login-btn">ACCESS PORTAL</button>
-          </form>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="admin-app-container">
+    <>
+      {!isAuthorized ? (
+        <div className="admin-app-container flex-center" style={{ minHeight: '100vh', flexDirection: 'column' }}>
+          <Header />
+          <div className="admin-login-card flex-center" style={{ flex: 1 }}>
+            <div className="admin-logo">FeelThe<span style={{ color: 'var(--accent)' }}>Wellness</span></div>
+            <h2>Administration Portal</h2>
+            <p>This area is restricted to authorized store staff. Please enter your passcode to access the portal.</p>
+            <form className="admin-login-form" onSubmit={handleLoginSubmit}>
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <input 
+                  type="password"
+                  className="input-field passcode-input"
+                  placeholder="••••••••••"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {authError && <div className="admin-auth-error" style={{ marginBottom: '16px', padding: '12px', borderRadius: '4px' }}>{authError}</div>}
+              <button type="submit" className="btn btn-primary login-btn">ACCESS PORTAL</button>
+            </form>
+          </div>
+          <Footer />
+        </div>
+      ) : (
+        <div className="admin-app-container">
       {/* Mobile Top Bar */}
       <div className="admin-mobile-topbar">
         <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
@@ -1292,6 +1322,98 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              <div className="form-group" style={{ marginTop: '24px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                <label className="form-label" style={{ marginBottom: '16px', display: 'block' }}>Visual Configuration (Fixed Zoomed Photo)</label>
+                
+                {formImages.length > 1 && (
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                    {formImages.map((img, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => setActivePreviewIndex(idx)}
+                        style={{
+                          width: '40px', height: '40px', border: activePreviewIndex === idx ? '2px solid var(--accent)' : '1px solid var(--border-color)',
+                          borderRadius: '4px', cursor: 'pointer', overflow: 'hidden', background: '#0a050d'
+                        }}
+                      >
+                        <img src={img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', gap: '24px', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Zoom Scale</label>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent)', fontWeight: 'bold' }}>{formImageCrops[activePreviewIndex]?.zoom || 1.0}x</span>
+                      </div>
+                      <input type="range" min="1.0" max="3.0" step="0.1" style={{ width: '100%', accentColor: 'var(--accent)' }} 
+                        value={formImageCrops[activePreviewIndex]?.zoom || 1.0} 
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const updated = [...formImageCrops];
+                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex].zoom = val;
+                          setFormImageCrops(updated);
+                          if (activePreviewIndex === 0) setFormDefaultZoom(val.toString());
+                        }} 
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Focus Horizontal (X)</label>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent)', fontWeight: 'bold' }}>{formImageCrops[activePreviewIndex]?.x || 50}%</span>
+                      </div>
+                      <input type="range" min="0" max="100" step="1" style={{ width: '100%', accentColor: 'var(--accent)' }} 
+                        value={formImageCrops[activePreviewIndex]?.x || 50} 
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const updated = [...formImageCrops];
+                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex].x = val;
+                          setFormImageCrops(updated);
+                          if (activePreviewIndex === 0) setFormDefaultZoomX(val.toString());
+                        }} 
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Focus Vertical (Y)</label>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent)', fontWeight: 'bold' }}>{formImageCrops[activePreviewIndex]?.y || 50}%</span>
+                      </div>
+                      <input type="range" min="0" max="100" step="1" style={{ width: '100%', accentColor: 'var(--accent)' }} 
+                        value={formImageCrops[activePreviewIndex]?.y || 50} 
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const updated = [...formImageCrops];
+                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex].y = val;
+                          setFormImageCrops(updated);
+                          if (activePreviewIndex === 0) setFormDefaultZoomY(val.toString());
+                        }} 
+                      />
+                    </div>
+                  </div>
+                  <div style={{ width: '140px', height: '140px', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', background: '#0a050d', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                    <div style={{ position: 'absolute', top: 6, left: 6, fontSize: '0.65rem', color: 'rgba(255,255,255,0.9)', zIndex: 10, background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Preview</div>
+                    <img 
+                      src={formImages[activePreviewIndex] || '/hero.webp'} 
+                      alt="Preview" 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'contain',
+                        mixBlendMode: 'multiply',
+                        transform: `scale(${formImageCrops[activePreviewIndex]?.zoom || 1.0})`, 
+                        transformOrigin: `${formImageCrops[activePreviewIndex]?.x || 50}% ${formImageCrops[activePreviewIndex]?.y || 50}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="form-row-grid">
                 <div className="form-group">
                   <label className="form-label" htmlFor="modal-rating">Rating</label>
@@ -1349,6 +1471,8 @@ export default function AdminPage() {
         </div>
       )}
       {isSidebarOpen && <div className="mobile-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+        </div>
+      )}
       <style jsx global>{`
         .admin-app-container {
           display: flex;
@@ -2205,7 +2329,7 @@ export default function AdminPage() {
           padding: 14px 28px;
         }
       `}</style>
-    </div>
+    </>
   );
 
   // Helper workaround for compiler naming mismatch inside callback trigger

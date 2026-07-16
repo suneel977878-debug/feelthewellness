@@ -16,6 +16,10 @@ export type Product = {
   rating: number;
   reviews: number;
   images: string[];
+  defaultZoom?: number;
+  defaultZoomX?: number;
+  defaultZoomY?: number;
+  imageCrops?: {zoom: number, x: number, y: number}[];
 };
 
 export const categoryTree = [

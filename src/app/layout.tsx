@@ -60,7 +60,21 @@ export default async function RootLayout({
   const promos = await getPromos();
 
   return (
-    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" className={`${playfair.variable} ${jakarta.variable}`}>
+    <html lang="en" suppressHydrationWarning data-theme="dark" data-scroll-behavior="smooth" className={`${playfair.variable} ${jakarta.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                var savedTheme = localStorage.getItem('feel_the_wellness_theme');
+                if (savedTheme) {
+                  document.documentElement.setAttribute('data-theme', savedTheme);
+                }
+              } catch (e) {}
+            })();
+          `
+        }} />
+      </head>
       <body>
         <CartProvider initialConfig={config} initialPromos={promos}>
           {children}
