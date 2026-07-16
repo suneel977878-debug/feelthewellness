@@ -1356,8 +1356,8 @@ export default function AdminPage() {
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           const updated = [...formImageCrops];
-                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
-                          updated[activePreviewIndex].zoom = val;
+                          const currentCrop = updated[activePreviewIndex] || { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex] = { ...currentCrop, zoom: val };
                           setFormImageCrops(updated);
                           if (activePreviewIndex === 0) setFormDefaultZoom(val.toString());
                         }} 
@@ -1373,8 +1373,8 @@ export default function AdminPage() {
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           const updated = [...formImageCrops];
-                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
-                          updated[activePreviewIndex].x = val;
+                          const currentCrop = updated[activePreviewIndex] || { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex] = { ...currentCrop, x: val };
                           setFormImageCrops(updated);
                           if (activePreviewIndex === 0) setFormDefaultZoomX(val.toString());
                         }} 
@@ -1390,15 +1390,15 @@ export default function AdminPage() {
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           const updated = [...formImageCrops];
-                          if (!updated[activePreviewIndex]) updated[activePreviewIndex] = { zoom: 1.0, x: 50, y: 50 };
-                          updated[activePreviewIndex].y = val;
+                          const currentCrop = updated[activePreviewIndex] || { zoom: 1.0, x: 50, y: 50 };
+                          updated[activePreviewIndex] = { ...currentCrop, y: val };
                           setFormImageCrops(updated);
                           if (activePreviewIndex === 0) setFormDefaultZoomY(val.toString());
                         }} 
                       />
                     </div>
                   </div>
-                  <div style={{ width: '140px', height: '140px', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', background: '#0a050d', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                  <div style={{ width: '140px', height: '140px', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', background: '#fce4ec', position: 'relative', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                     <div style={{ position: 'absolute', top: 6, left: 6, fontSize: '0.65rem', color: 'rgba(255,255,255,0.9)', zIndex: 10, background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Preview</div>
                     <img 
                       src={formImages[activePreviewIndex] || '/hero.webp'} 
