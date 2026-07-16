@@ -200,6 +200,8 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
           updatedProducts = updatedProducts.map(prod => 
             prod.id === pId ? { ...prod, images: newImages, imageCrops: newCrops } : prod
           );
+        } else {
+          alert(`Failed to unlink for product ${pId}: ${res.error}`);
         }
       }
       
@@ -240,7 +242,8 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
         <div style={{
           background: '#222', padding: '16px 24px', borderRadius: '12px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginBottom: '2rem', border: '1px solid var(--accent)'
+          marginBottom: '2rem', border: '1px solid var(--accent)',
+          position: 'sticky', top: '20px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
         }}>
           <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
             {selectedImageIds.size} images selected
