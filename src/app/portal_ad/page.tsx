@@ -313,6 +313,34 @@ export default function AdminPage() {
     window.location.href = '/portal_ad';
   };
 
+  if (!isAuthorized) {
+    return (
+      <div className="admin-app-container flex-center" style={{ minHeight: '100vh', flexDirection: 'column' }}>
+        <Header />
+        <div className="admin-login-card flex-center" style={{ flex: 1 }}>
+          <div className="admin-logo">FeelThe<span style={{ color: 'var(--accent)' }}>Wellness</span></div>
+          <h2>Administration Portal</h2>
+          <p>This area is restricted to authorized store staff. Please enter your passcode to access the portal.</p>
+          <form className="admin-login-form" onSubmit={handleLoginSubmit}>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <input 
+                type="password"
+                className="input-field passcode-input"
+                placeholder="••••••••••"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {authError && <div className="admin-auth-error" style={{ marginBottom: '16px', padding: '12px', borderRadius: '4px' }}>{authError}</div>}
+            <button type="submit" className="btn btn-primary login-btn">ACCESS PORTAL</button>
+          </form>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="admin-app-container">
       {/* Mobile Top Bar */}
