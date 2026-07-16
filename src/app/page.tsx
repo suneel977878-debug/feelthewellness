@@ -80,7 +80,7 @@ export default async function HomePage() {
 
   // Select 4 attractive/lustful products for display (Top Featured)
   const featuredBestsellers = products
-    .filter(p => p.isBestSeller || p.category === 'Lingerie & Clothing' || p.subcategory === 'Dildos' || p.subcategory === 'Sex Dolls' || p.name.toLowerCase().includes('dildo') || p.name.toLowerCase().includes('doll') || p.name.includes('Vibrating') || p.name.includes('Wand'))
+    .filter(p => p.isBestSeller || p.category === 'Lingerie & Clothing' || p.subcategory === 'Dildos' || p.subcategory === 'Sex Dolls' || (p.name && (p.name.toLowerCase().includes('dildo') || p.name.toLowerCase().includes('doll') || p.name.includes('Vibrating') || p.name.includes('Wand'))))
     .sort((a, b) => b.id - a.id)
     .slice(0, 4);
 
