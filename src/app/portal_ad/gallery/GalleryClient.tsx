@@ -16,6 +16,10 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
     cropData: { zoom: number; x: number; y: number };
   } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Multi-select state tracking unique identifiers "productId-imageIndex"
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
+  const [isBulkActing, setIsBulkActing] = useState(false);
 
   // Derived categories
   const categories = useMemo(() => {
@@ -141,6 +145,73 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
     setIsSaving(false);
   };
 
+  const toggleSelection = (e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation(); // prevent opening editor
+    const newSelected = new Set(selectedImageIds);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedImageIds(newSelected);
+  };
+
+  const handleBulkUnlink = async () => {
+    if (selectedImageIds.size === 0) return;
+    const confirmDelete = confirm(`Are you sure you want to unlink ${selectedImageIds.size} images?`);
+    if (!confirmDelete) return;
+
+    setIsBulkActing(true);
+    
+    // Group deletions by product ID
+    const unlinksByProduct: Record<number, number[]> = {};
+    Array.from(selectedImageIds).forEach(idString => {
+      const [pIdStr, iIdStr] = idString.split('-');
+      const pId = parseInt(pIdStr, 10);
+      const iId = parseInt(iIdStr, 10);
+      if (!unlinksByProduct[pId]) unlinksByProduct[pId] = [];
+      unlinksByProduct[pId].push(iId);
+    });
+
+    try {
+      let updatedProducts = [...products];
+
+      for (const pIdStr of Object.keys(unlinksByProduct)) {
+        const pId = parseInt(pIdStr, 10);
+        const indexesToRemove = unlinksByProduct[pId].sort((a, b) => b - a); // Sort descending to splice safely
+        
+        const product = updatedProducts.find(p => p.id === pId);
+        if (!product) continue;
+
+        const newImages = [...(product.images || [])];
+        const oldCrops = [...(product.imageCrops || [])];
+        
+        // Remove from highest index to lowest so we don't mess up array indices
+        indexesToRemove.forEach(idx => {
+          newImages.splice(idx, 1);
+          oldCrops.splice(idx, 1);
+        });
+
+        // Ensure new crops array has correct length and fallbacks
+        const newCrops = newImages.map((_, i) => oldCrops[i] || { zoom: 1.0, x: 50, y: 50 });
+
+        const res = await updateProductImageConfig(pId, newImages, newCrops);
+        if (res.success) {
+          updatedProducts = updatedProducts.map(prod => 
+            prod.id === pId ? { ...prod, images: newImages, imageCrops: newCrops } : prod
+          );
+        }
+      }
+      
+      setProducts(updatedProducts);
+      setSelectedImageIds(new Set()); // clear selection
+      
+    } catch (e) {
+      alert("Error performing bulk unlink.");
+    }
+    setIsBulkActing(false);
+  };
+
   return (
     <div style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -164,59 +235,113 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
         <span style={{ color: '#888', marginLeft: 'auto' }}>Showing {allImages.length} images</span>
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedImageIds.size > 0 && (
+        <div style={{
+          background: '#222', padding: '16px 24px', borderRadius: '12px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: '2rem', border: '1px solid var(--accent)'
+        }}>
+          <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+            {selectedImageIds.size} images selected
+          </span>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={() => setSelectedImageIds(new Set())}
+              style={{ padding: '8px 16px', background: 'transparent', color: '#fff', border: '1px solid #555', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              Clear Selection
+            </button>
+            <button 
+              onClick={handleBulkUnlink}
+              disabled={isBulkActing}
+              style={{ padding: '8px 16px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', cursor: isBulkActing ? 'wait' : 'pointer', fontWeight: 'bold' }}
+            >
+              {isBulkActing ? 'Unlinking...' : 'Bulk Unlink Selected'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
         gap: '20px' 
       }}>
-        {allImages.map((item, i) => (
-          <div 
-            key={`${item.product.id}-${item.index}-${i}`} 
-            style={{ 
-              background: '#1a1a1a', 
-              borderRadius: '12px', 
-              overflow: 'hidden',
-              cursor: 'pointer',
-              border: '1px solid #333',
-              transition: 'transform 0.2s, borderColor 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
-            onMouseOut={(e) => e.currentTarget.style.borderColor = '#333'}
-            onClick={() => openEditor(item)}
-          >
-            <div style={{ 
-              width: '100%', 
-              aspectRatio: '1/1', 
-              background: '#fce4ec', // Light pink background to match product page blend mode
-              position: 'relative' 
-            }}>
-              <img 
-                src={item.imageUrl} 
-                alt={item.product.name}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  mixBlendMode: 'multiply',
-                  transform: `scale(${item.crop.zoom})`,
-                  transformOrigin: `${item.crop.x}% ${item.crop.y}%`
-                }}
-              />
-              <div style={{ position: 'absolute', top: 5, left: 5, background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '2px 6px', fontSize: '11px', borderRadius: '4px' }}>
-                ID: {item.product.id}
+        {allImages.map((item, i) => {
+          const itemId = `${item.product.id}-${item.index}`;
+          const isSelected = selectedImageIds.has(itemId);
+          
+          return (
+            <div 
+              key={`${itemId}-${i}`} 
+              style={{ 
+                background: '#1a1a1a', 
+                borderRadius: '12px', 
+                overflow: 'hidden',
+                cursor: 'pointer',
+                border: isSelected ? '2px solid var(--accent)' : '1px solid #333',
+                transition: 'transform 0.2s, borderColor 0.2s',
+                position: 'relative'
+              }}
+              onMouseOver={(e) => { if(!isSelected) e.currentTarget.style.borderColor = 'var(--accent)' }}
+              onMouseOut={(e) => { if(!isSelected) e.currentTarget.style.borderColor = '#333' }}
+              onClick={() => openEditor(item)}
+            >
+              <div 
+                style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}
+                onClick={(e) => toggleSelection(e, itemId)}
+              >
+                <input 
+                  type="checkbox" 
+                  checked={isSelected}
+                  readOnly
+                  style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+                />
+              </div>
+              <div style={{ 
+                width: '100%', 
+                aspectRatio: '1/1', 
+                background: '#fce4ec', // Light pink background to match product page blend mode
+                position: 'relative' 
+              }}>
+                <img 
+                  src={item.imageUrl} 
+                  alt={item.product.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    mixBlendMode: 'multiply',
+                    transform: `scale(${item.crop.zoom})`,
+                    transformOrigin: `${item.crop.x}% ${item.crop.y}%`
+                  }}
+                />
+                <div style={{ position: 'absolute', top: 5, left: 5, background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '2px 6px', fontSize: '11px', borderRadius: '4px' }}>
+                  ID: {item.product.id}
+                </div>
+              </div>
+              <div style={{ padding: '10px', fontSize: '0.85rem' }}>
+                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '4px' }}>
+                  <a 
+                    href={`/product/${item.product.id}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()} // Prevent opening editor
+                    style={{ color: '#fff', textDecoration: 'underline', fontWeight: 'bold' }}
+                    title="View product page in new tab"
+                  >
+                    {item.product.name}
+                  </a>
+                </div>
+                <div style={{ color: '#888', fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Img #{item.index + 1}</span>
+                  <span>Z: {item.crop.zoom}x</span>
+                </div>
               </div>
             </div>
-            <div style={{ padding: '10px', fontSize: '0.85rem' }}>
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#fff', marginBottom: '4px' }}>
-                {item.product.name}
-              </div>
-              <div style={{ color: '#888', fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Img #{item.index + 1}</span>
-                <span>Z: {item.crop.zoom}x</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {editingItem && (
