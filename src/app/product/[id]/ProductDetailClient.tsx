@@ -17,6 +17,17 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
+  
+  // Image zoom state
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isZooming, setIsZooming] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomPos({ x, y });
+  };
 
   // Generate the 4 gallery images for the product dynamically
   const galleryImages = useMemo(() => {
@@ -98,25 +109,37 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
               {/* Main Viewport */}
               <div className="detail-photo-viewport flex-center">
                 {galleryImages[activeImageIndex] && (
-                  <div className="premium-image-wrapper">
+                  <div 
+                    className="premium-image-wrapper"
+                    onMouseMove={handleMouseMove}
+                    onMouseEnter={() => setIsZooming(true)}
+                    onMouseLeave={() => setIsZooming(false)}
+                    style={{ cursor: isZooming ? 'zoom-in' : 'pointer', overflow: 'hidden' }}
+                  >
                     <img 
                       src={galleryImages[activeImageIndex].src} 
                       alt={`${product.name} - ${galleryImages[activeImageIndex].label}`}
                       className="product-photo"
-                        style={{ 
+                      style={{ 
                         width: '100%', 
                         height: '100%', 
                         objectFit: 'contain',
                         mixBlendMode: 'multiply',
-                        transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        transition: isZooming ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        transform: isZooming ? 'scale(2.5)' : 'scale(1)',
+                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                         ...galleryImages[activeImageIndex].style
                       }}
                     />
-                    <div className="premium-vignette"></div>
-                    <div className="premium-watermark">
-                      <span className="watermark-text">FeelTheWellness</span>
-                      <span className="watermark-sub">PRO COLLECTION</span>
-                    </div>
+                    {!isZooming && (
+                      <>
+                        <div className="premium-vignette"></div>
+                        <div className="premium-watermark">
+                          <span className="watermark-text">FeelTheWellness</span>
+                          <span className="watermark-sub">PRO COLLECTION</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
