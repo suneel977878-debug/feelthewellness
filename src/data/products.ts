@@ -30,8 +30,7 @@ export const categoryTree = [
   { id: 'couples', name: 'Couples Toys', subcategories: ['Vibrators & Wands', 'Bondage & BDSM', 'All Toys'] },
   { id: 'bdsm', name: 'BDSM & Bondage', subcategories: ['Bondage & BDSM', 'Lingerie', 'All Toys'] },
   { id: 'lingerie', name: 'Lingerie & Clothing', subcategories: ['Lingerie', 'All Toys'] },
-  { id: 'supplements', name: 'Supplements & Condoms', subcategories: ['Condoms', 'Lubricants', 'Supplements', 'All Toys'] },
-  { id: 'other', name: 'Other', subcategories: ['All Toys'] }
+  { id: 'supplements', name: 'Supplements & Condoms', subcategories: ['Condoms', 'Lubricants', 'Supplements', 'All Toys'] }
 ];
 
 import productsData from './products.json';
