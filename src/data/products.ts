@@ -26,6 +26,7 @@ export type Product = {
 export const categoryTree = [
   { id: 'women', name: 'Women Sex Toys', subcategories: ['Vibrators & Wands', 'Dildos', 'Anal Toys', 'Lingerie', 'All Toys'] },
   { id: 'men', name: 'Men Sex Toys', subcategories: ['Sex Dolls', 'Male Masturbators', 'Cock Rings', 'Anal Toys', 'All Toys'] },
+  { id: 'sexdolls', name: 'Sex Dolls', subcategories: ['Sex Dolls', 'All Dolls'] },
   { id: 'couples', name: 'Couples Toys', subcategories: ['Vibrators & Wands', 'Bondage & BDSM', 'All Toys'] },
   { id: 'bdsm', name: 'BDSM & Bondage', subcategories: ['Bondage & BDSM', 'Lingerie', 'All Toys'] },
   { id: 'lingerie', name: 'Lingerie & Clothing', subcategories: ['Lingerie', 'All Toys'] },

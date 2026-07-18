@@ -116,11 +116,17 @@ export default function CatalogClient({ products }: { products: Product[] }) {
       .filter((product) => {
         // Category Filter
         const matchesCategory =
-          selectedCategory === 'All' || product.category === selectedCategory;
+          selectedCategory === 'All' || 
+          (selectedCategory === 'Sex Dolls' 
+            ? (product.subcategory === 'Sex Dolls' || product.category === 'Sex Dolls') 
+            : product.category === selectedCategory);
 
         // Subcategory Filter
         const matchesSubcategory = 
-          selectedSubcategory === 'All' || selectedSubcategory === 'All Toys' || product.subcategory === selectedSubcategory;
+          selectedSubcategory === 'All' || 
+          selectedSubcategory === 'All Toys' || 
+          selectedSubcategory === 'All Dolls' || 
+          product.subcategory === selectedSubcategory;
 
         // Search Filter
         const matchesSearch =

@@ -92,6 +92,7 @@ export default async function HomePage() {
 
   // Map category images
   const categoryImages: Record<string, string> = {
+    'Sex Dolls': '/categories/circ_cat_male_1783348503157.webp',
     'Women Sex Toys': '/categories/circ_cat_vibrator_1783348478935.webp',
     'Men Sex Toys': '/categories/circ_cat_male_1783348503157.webp',
     'Couples Toys': '/categories/circ_cat_couples_1783348542596.webp',
@@ -121,6 +122,7 @@ export default async function HomePage() {
         <section className="quick-nav-section">
           <div className="quick-nav-scroll">
             {[
+              { id: 'sexdolls', dbName: 'Sex Dolls', displayName: 'SEX DOLLS' },
               { id: 'men', dbName: 'Men Sex Toys', displayName: "MEN'S TOYS" },
               { id: 'women', dbName: 'Women Sex Toys', displayName: "WOMEN'S TOYS" },
               { id: 'couples', dbName: 'Couples Toys', displayName: 'COUPLES' },
