@@ -12,6 +12,9 @@ import { createOrder } from '../actions/orders';
 export default function CartPage() {
   const router = useRouter();
   const { cart, updateQuantity, removeFromCart, getCartTotal, getCartCount, paytmConfig, storeUpiId, promos, isLoaded } = useCart();
+  
+  const phoneMatch = storeUpiId.match(/\b\d{10}\b/);
+  const storePhone = phoneMatch ? phoneMatch[0] : '8397868059';
 
   // Checkout shipping states
   const [fullName, setFullName] = useState('');
@@ -340,41 +343,56 @@ export default function CartPage() {
                       {/* Manual UPI Payment Section */}
                       {true && (
                         <div className="upi-payment-section">
-                          <h4>1. Select your UPI App</h4>
-                          <div className="upi-app-selectors">
-                            <label className={`upi-app-card ${paymentApp === 'phonepe' ? 'selected' : ''}`}>
-                              <input type="radio" name="paymentApp" value="phonepe" checked={paymentApp === 'phonepe'} onChange={() => setPaymentApp('phonepe')} />
-                              <span className="app-icon phonepe">पे</span>
-                              <span className="app-name">PhonePe</span>
-                            </label>
-                            <label className={`upi-app-card ${paymentApp === 'gpay' ? 'selected' : ''}`}>
-                              <input type="radio" name="paymentApp" value="gpay" checked={paymentApp === 'gpay'} onChange={() => setPaymentApp('gpay')} />
-                              <span className="app-icon gpay">G</span>
-                              <span className="app-name">GPay</span>
-                            </label>
-                            <label className={`upi-app-card ${paymentApp === 'paytm' ? 'selected' : ''}`}>
-                              <input type="radio" name="paymentApp" value="paytm" checked={paymentApp === 'paytm'} onChange={() => setPaymentApp('paytm')} />
-                              <span className="app-icon paytm">₹</span>
-                              <span className="app-name">Paytm</span>
-                            </label>
+                          <div className="upi-limit-warning" style={{ background: 'rgba(255, 193, 7, 0.08)', border: '1px solid var(--accent)', borderRadius: '12px', padding: '16px', marginBottom: '24px', fontSize: '0.9rem', color: '#ffb300' }}>
+                            ⚠️ <strong>Avoid Bank Limit Errors (No ₹2,000 QR Limit)</strong>
+                            <p style={{ margin: '8px 0 0', lineHeight: '1.5', color: '#ccc' }}>
+                              Most banks restrict standard QR code payments above ₹2,000. To pay successfully, select an option below to pay directly to our mobile number <strong>{storePhone}</strong> or request a payment link:
+                            </p>
                           </div>
-                          
-                          <div className="upi-app-action-btn" style={{ marginBottom: '24px' }}>
+
+                          <h4>1. Tap to Chat & Pay (Select App)</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
                             <a 
-                              href={getAppDeepLink()} 
-                              className="btn btn-primary" 
-                              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}
+                              href={`phonepe://pay?pa=${storePhone}@ybl`}
+                              className="btn"
+                              style={{ background: '#5f259f', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
                               onClick={() => {
+                                setPaymentApp('phonepe');
                                 localStorage.setItem('lp_last_customer_name', fullName);
                                 localStorage.setItem('lp_last_customer_phone', phoneNumber);
                                 localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
                               }}
                             >
-                              Open {paymentApp === 'phonepe' ? 'PhonePe' : paymentApp === 'gpay' ? 'GPay' : 'Paytm'} & Pay ₹{orderTotal.toLocaleString('en-IN')}
+                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>पे</span> Open PhonePe & Pay to Number
                             </a>
-                            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                              (If you are on a mobile device, tapping this button will autofill the details in your app)
-                            </p>
+                            <a 
+                              href={`paytmmp://cash_wallet?featuretype=sendmoney&recipient=${storePhone}`}
+                              className="btn"
+                              style={{ background: '#00baf2', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              onClick={() => {
+                                setPaymentApp('paytm');
+                                localStorage.setItem('lp_last_customer_name', fullName);
+                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
+                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+                              }}
+                            >
+                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span> Open Paytm Chat & Send Money
+                            </a>
+                            <a 
+                              href={`https://wa.me/91${storePhone}?text=${encodeURIComponent(`Hello, I want to pay ₹${orderTotal} for my FeelTheWellness order. Please send me a payment request.`)}`}
+                              className="btn"
+                              style={{ background: '#25D366', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={() => {
+                                setPaymentApp('gpay'); // fallback tracker
+                                localStorage.setItem('lp_last_customer_name', fullName);
+                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
+                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+                              }}
+                            >
+                              💬 Request Payment Link via WhatsApp Chat
+                            </a>
                           </div>
                           
                           <div className="upi-payment-instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
