@@ -376,7 +376,7 @@ export default function CartPage() {
                           <div className="upi-limit-warning" style={{ background: 'rgba(255, 193, 7, 0.08)', border: '1px solid var(--accent)', borderRadius: '12px', padding: '16px', marginBottom: '24px', fontSize: '0.9rem', color: '#ffb300' }}>
                             ⚠️ <strong>Avoid Bank Limit Errors (No ₹2,000 QR Limit)</strong>
                             <p style={{ margin: '8px 0 0', lineHeight: '1.5', color: '#ccc' }}>
-                              Most banks restrict standard QR code payments above ₹2,000. To pay successfully, select an option below to pay directly to our mobile number <strong>{storePhone}</strong> or request a payment link using WhatsApp chat:
+                              Most banks restrict standard QR code payments above ₹2,000. To pay successfully, select an option below to pay directly to our mobile number <strong>{storePhone}</strong>:
                             </p>
                           </div>
 
@@ -420,20 +420,6 @@ export default function CartPage() {
                               }}
                             >
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
-                            </a>
-                            <a 
-                              href={getWhatsappLink()}
-                              className="btn"
-                              style={{ background: '#25D366', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={() => {
-                                localStorage.setItem('lp_last_customer_name', fullName);
-                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
-                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
-                              }}
-                            >
-                              💬 Request Payment Link via WhatsApp Chat
                             </a>
                           </div>
                           
