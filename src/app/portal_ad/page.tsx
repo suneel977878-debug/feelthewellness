@@ -26,6 +26,13 @@ export default function AdminPage() {
   const [storeUpiId, setStoreUpiIdState] = useState<string>(contextStoreUpiId);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
+  // Check sessionStorage auth on mount
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('adminAuthorized') === 'true') {
+      setIsAuthorized(true);
+    }
+  }, []);
+
   // Fetch initial data
   React.useEffect(() => {
     async function loadData() {
@@ -100,10 +107,11 @@ export default function AdminPage() {
     setAgeGateEnabledState(enabled);
   };
 
-  const setStoreUpiId = async (id: string) => {
+  const handleSaveUpiId = async (e: React.FormEvent) => {
+    e.preventDefault();
     const { updateStoreUpiId } = await import('../actions/config');
-    await updateStoreUpiId(id);
-    setStoreUpiIdState(id);
+    await updateStoreUpiId(storeUpiId.trim());
+    alert('Store UPI ID saved successfully!');
   };
 
   const addPromo = async (promo: Omit<any, 'id'>) => {
@@ -183,6 +191,7 @@ export default function AdminPage() {
     e.preventDefault();
     if (passcode === 'Sunil@2026') {
       setIsAuthorized(true);
+      if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
       setAuthError('');
       // Sync form states with context loaded configs
       setPaytmMid(paytmConfig.mid);
@@ -345,6 +354,7 @@ export default function AdminPage() {
   const totalPages = Math.ceil(filteredProductsList.length / itemsPerPage);
 
   const handleLogout = async () => {
+    if (typeof window !== 'undefined') sessionStorage.removeItem('adminAuthorized');
     await logout();
     window.location.href = '/portal_ad';
   };
@@ -1108,9 +1118,12 @@ export default function AdminPage() {
                       <p>Toggles the full-screen age verification modal warning on the landing page. We recommend leaving this active to comply with adult content laws.</p>
                     </div>
 
-                    <div className="settings-card-ctrl">
+                    <form className="settings-card-ctrl" onSubmit={handleSaveUpiId}>
                       <div className="ctrl-header">
                         <h4>Store UPI ID</h4>
+                        <button type="submit" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
+                          Save UPI ID
+                        </button>
                       </div>
                       <p>The UPI ID where payments will be collected manually via QR code.</p>
                       <div className="form-group" style={{ marginTop: '16px' }}>
@@ -1118,11 +1131,11 @@ export default function AdminPage() {
                           type="text" 
                           className="form-input" 
                           value={storeUpiId}
-                          onChange={(e) => setStoreUpiId(e.target.value)}
+                          onChange={(e) => setStoreUpiIdState(e.target.value)}
                           placeholder="e.g. yourname@ybl"
                         />
                       </div>
-                    </div>
+                    </form>
 
                     <div className="settings-card-ctrl">
                       <div className="ctrl-header">
