@@ -114,7 +114,7 @@ export default function CartPage() {
   };
 
   const getGpayLink = () => {
-    return `tez://upi/pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`;
+    return `upi://pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`;
   };
 
   const getWhatsappLink = () => {
