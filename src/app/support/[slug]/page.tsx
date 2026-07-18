@@ -74,7 +74,6 @@ export default function SupportPage({ params }: { params: Promise<{ slug: string
             <p>Our dedicated team of Intimacy Experts is ready to assist you with product recommendations, order tracking, and any other inquiries you might have.</p>
             <ul>
               <li><strong>Email:</strong> support@feelthewellness.com</li>
-              <li><strong>Phone:</strong> 1-800-WELLNESS (Available Mon-Fri, 9AM-6PM)</li>
               <li><strong>Live Chat:</strong> Click the chat icon in the bottom right corner of your screen during business hours.</li>
             </ul>
             <p>All communications are strictly confidential and handled with the utmost discretion and respect.</p>
