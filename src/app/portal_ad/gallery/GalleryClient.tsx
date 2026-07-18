@@ -8,6 +8,7 @@ import { updateProductImageConfig } from '../../actions/images';
 export default function GalleryClient({ initialProducts }: { initialProducts: Product[] }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [aspectRatioMode, setAspectRatioMode] = useState<'1/1' | '4/3' | '16/9' | '3/4'>('1/1');
   
   // Modal state
   const [editingItem, setEditingItem] = useState<{
@@ -223,18 +224,47 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
         </Link>
       </div>
 
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <label style={{ fontSize: '1.1rem' }}>Filter by Category:</label>
-        <select 
-          value={selectedCategory} 
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          style={{ padding: '10px 16px', background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '8px', fontSize: '1rem' }}
-        >
-          {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <span style={{ color: '#888', marginLeft: 'auto' }}>Showing {allImages.length} images</span>
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap', background: '#111', padding: '16px 20px', borderRadius: '12px', border: '1px solid #222' }}>
+        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+          <label style={{ fontSize: '1rem', color: '#aaa' }}>Category:</label>
+          <select 
+            value={selectedCategory} 
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={{ padding: '8px 14px', background: '#1a1a1a', color: '#fff', border: '1px solid #333', borderRadius: '8px', fontSize: '0.95rem', cursor: 'pointer' }}
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+          <label style={{ fontSize: '1rem', color: '#aaa' }}>Crop View Aspect Ratio:</label>
+          <div style={{ display: 'flex', gap: '6px', background: '#1a1a1a', padding: '4px', borderRadius: '8px', border: '1px solid #333' }}>
+            {(['1/1', '4/3', '16/9', '3/4'] as const).map(ratio => (
+              <button
+                key={ratio}
+                type="button"
+                onClick={() => setAspectRatioMode(ratio)}
+                style={{
+                  padding: '6px 12px',
+                  background: aspectRatioMode === ratio ? 'var(--accent)' : 'transparent',
+                  color: aspectRatioMode === ratio ? '#fff' : '#888',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: aspectRatioMode === ratio ? 'bold' : 'normal',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {ratio === '1/1' ? 'Square (1:1)' : ratio === '4/3' ? 'Rectangular (4:3)' : ratio === '16/9' ? 'Wide (16:9)' : 'Portrait (3:4)'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <span style={{ color: '#888', marginLeft: 'auto', fontSize: '0.95rem' }}>Showing {allImages.length} images</span>
       </div>
 
       {/* Bulk Action Bar */}
@@ -304,7 +334,7 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
               </div>
               <div style={{ 
                 width: '100%', 
-                aspectRatio: '1/1', 
+                aspectRatio: aspectRatioMode, 
                 background: '#fce4ec', // Light pink background to match product page blend mode
                 position: 'relative' 
               }}>
@@ -360,9 +390,32 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
           }}>
             {/* Preview Column */}
             <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <h3 style={{ margin: '0 0 10px 0' }}>Preview</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0 }}>Preview Box ({aspectRatioMode})</h3>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {(['1/1', '4/3', '16/9', '3/4'] as const).map(ratio => (
+                    <button
+                      key={ratio}
+                      type="button"
+                      onClick={() => setAspectRatioMode(ratio)}
+                      style={{
+                        padding: '3px 6px',
+                        background: aspectRatioMode === ratio ? 'var(--accent)' : '#222',
+                        color: aspectRatioMode === ratio ? '#fff' : '#aaa',
+                        border: '1px solid #444',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.7rem',
+                        fontWeight: aspectRatioMode === ratio ? 'bold' : 'normal'
+                      }}
+                    >
+                      {ratio}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ 
-                width: '100%', aspectRatio: '1/1', background: '#fce4ec', 
+                width: '100%', aspectRatio: aspectRatioMode, background: '#fce4ec', 
                 borderRadius: '12px', overflow: 'hidden', position: 'relative'
               }}>
                 <img 
@@ -374,6 +427,9 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
                     transformOrigin: `${editingItem.cropData.x}% ${editingItem.cropData.y}%`
                   }}
                 />
+                {/* Center Crosshair Guides */}
+                <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', background: 'rgba(255, 0, 128, 0.4)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', background: 'rgba(255, 0, 128, 0.4)', pointerEvents: 'none' }} />
               </div>
               <p style={{ margin: 0, fontSize: '0.9rem', color: '#ccc', textAlign: 'center' }}>
                 {editingItem.product.name}
