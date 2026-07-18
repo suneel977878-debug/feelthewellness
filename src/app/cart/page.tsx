@@ -421,20 +421,6 @@ export default function CartPage() {
                             >
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
                             </a>
-                            <a 
-                              href={getWhatsappLink()}
-                              className="btn"
-                              style={{ background: '#25D366', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={() => {
-                                localStorage.setItem('lp_last_customer_name', fullName);
-                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
-                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
-                              }}
-                            >
-                              💬 Request Payment Link via WhatsApp Chat
-                            </a>
                           </div>
                           
                           <div className="upi-payment-instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
