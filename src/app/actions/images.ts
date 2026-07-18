@@ -27,8 +27,8 @@ export async function updateProductImageConfig(
     revalidatePath('/catalog');
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating product images:", error);
-    return { success: false, error: "Failed to update images" };
+    return { success: false, error: error?.message || "Failed to update images" };
   }
 }

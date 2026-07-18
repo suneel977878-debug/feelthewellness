@@ -26,11 +26,45 @@ export default function AdminPage() {
   const [storeUpiId, setStoreUpiIdState] = useState<string>(contextStoreUpiId);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Check sessionStorage auth on mount
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem('adminAuthorized') === 'true') {
-      setIsAuthorized(true);
+  // Helper to handle admin actions errors and session expirations
+  const handleAdminError = (error: any, fallbackMessage: string) => {
+    console.error("Admin error:", error);
+    const message = error?.message || fallbackMessage;
+    if (
+      message.includes('Server Components render') ||
+      message.includes('Unauthorized') ||
+      message.includes('digest')
+    ) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('adminAuthorized');
+      }
+      setIsAuthorized(false);
+      alert("Your admin session has expired or is invalid. Please log in again using passcode India@2026.");
+    } else {
+      alert(message);
     }
+  };
+
+  // Check sessionStorage and server cookie on mount
+  React.useEffect(() => {
+    async function verifySession() {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('adminAuthorized') === 'true') {
+        try {
+          const { checkAdminSession } = await import('../actions/auth');
+          const isValid = await checkAdminSession();
+          if (isValid) {
+            setIsAuthorized(true);
+          } else {
+            sessionStorage.removeItem('adminAuthorized');
+            setIsAuthorized(false);
+          }
+        } catch (err) {
+          sessionStorage.removeItem('adminAuthorized');
+          setIsAuthorized(false);
+        }
+      }
+    }
+    verifySession();
   }, []);
 
   // Fetch initial data
@@ -65,8 +99,7 @@ export default function AdminPage() {
         setProducts(prev => [newProduct, ...prev]);
       }
     } catch (error: any) {
-      console.error("Add product error:", error);
-      alert(error.message || "Failed to add product");
+      handleAdminError(error, "Failed to add product");
     }
   };
 
@@ -78,8 +111,7 @@ export default function AdminPage() {
         setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
       }
     } catch (error: any) {
-      console.error("Update product error:", error);
-      alert(error.message || "Failed to update product");
+      handleAdminError(error, "Failed to update product");
     }
   };
 
@@ -89,8 +121,7 @@ export default function AdminPage() {
       await delP(productId);
       setProducts(prev => prev.filter(p => p.id !== productId));
     } catch (error: any) {
-      console.error("Delete product error:", error);
-      alert(error.message || "Failed to delete product");
+      handleAdminError(error, "Failed to delete product");
     }
   };
 
@@ -102,8 +133,7 @@ export default function AdminPage() {
       setProducts(refreshed || []);
       alert('Bulk price update applied successfully!');
     } catch (error: any) {
-      console.error("Bulk update error:", error);
-      alert(error.message || "Failed to apply bulk price update");
+      handleAdminError(error, "Failed to apply bulk price update");
     }
   };
 
@@ -113,8 +143,7 @@ export default function AdminPage() {
       await updateConfig(config);
       setContextPaytmConfig(config);
     } catch (error: any) {
-      console.error("Update Paytm config error:", error);
-      alert(error.message || "Failed to save Paytm configuration");
+      handleAdminError(error, "Failed to save Paytm configuration");
     }
   };
 
@@ -126,8 +155,7 @@ export default function AdminPage() {
         setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
       }
     } catch (error: any) {
-      console.error("Update order status error:", error);
-      alert(error.message || "Failed to update order status");
+      handleAdminError(error, "Failed to update order status");
     }
   };
 
@@ -139,8 +167,7 @@ export default function AdminPage() {
         setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
       }
     } catch (error: any) {
-      console.error("Update delivery tracking error:", error);
-      alert(error.message || "Failed to update tracking info");
+      handleAdminError(error, "Failed to update tracking info");
     }
   };
 
@@ -150,8 +177,7 @@ export default function AdminPage() {
       await clearO();
       setOrders([]);
     } catch (error: any) {
-      console.error("Clear orders error:", error);
-      alert(error.message || "Failed to clear orders");
+      handleAdminError(error, "Failed to clear orders");
     }
   };
 
@@ -161,8 +187,7 @@ export default function AdminPage() {
       await updateAgeGate(enabled);
       setAgeGateEnabledState(enabled);
     } catch (error: any) {
-      console.error("Update age gate error:", error);
-      alert(error.message || "Failed to update Age Gate setting");
+      handleAdminError(error, "Failed to update Age Gate setting");
     }
   };
 
@@ -177,8 +202,7 @@ export default function AdminPage() {
       await updateStoreUpiId(storeUpiId.trim());
       alert('Store UPI ID saved successfully!');
     } catch (error: any) {
-      console.error("Save UPI ID error:", error);
-      alert(error.message || "Failed to save UPI ID");
+      handleAdminError(error, "Failed to save UPI ID");
     }
   };
 
@@ -190,8 +214,7 @@ export default function AdminPage() {
         setPromos(prev => [...prev, newPromo]);
       }
     } catch (error: any) {
-      console.error("Add promo error:", error);
-      alert(error.message || "Failed to add promo code");
+      handleAdminError(error, "Failed to add promo code");
     }
   };
 
@@ -201,8 +224,7 @@ export default function AdminPage() {
       await toggleP(id, isActive);
       setPromos(prev => prev.map(p => p.id === id ? { ...p, isActive } : p));
     } catch (error: any) {
-      console.error("Toggle promo error:", error);
-      alert(error.message || "Failed to toggle promo code");
+      handleAdminError(error, "Failed to toggle promo code");
     }
   };
 
@@ -212,8 +234,7 @@ export default function AdminPage() {
       await delP(id);
       setPromos(prev => prev.filter(p => p.id !== id));
     } catch (error: any) {
-      console.error("Delete promo error:", error);
-      alert(error.message || "Failed to delete promo code");
+      handleAdminError(error, "Failed to delete promo code");
     }
   };
 
@@ -449,7 +470,7 @@ export default function AdminPage() {
       setIsModalOpen(false);
       setEditingProduct(null);
     } catch (err: any) {
-      alert(err.message || 'Error saving product.');
+      handleAdminError(err, 'Error saving product.');
     }
   };
 

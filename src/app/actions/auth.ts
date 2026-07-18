@@ -12,7 +12,7 @@ export async function authenticate(passcode: string) {
     cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days simultaneous multi-device session
       path: '/'
     });
@@ -25,6 +25,17 @@ export async function authenticate(passcode: string) {
 export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete('admin_session');
+}
+
+export async function checkAdminSession(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get('admin_session');
+    const expectedToken = process.env.ADMIN_SESSION_TOKEN || 'fallback_secure_token_123';
+    return Boolean(session && session.value === expectedToken);
+  } catch (e) {
+    return false;
+  }
 }
 
 export async function verifyAdminAuth(): Promise<boolean> {

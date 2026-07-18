@@ -22,6 +22,38 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
   const [selectedImageIds, setSelectedImageIds] = useState<Set<string>>(new Set());
   const [isBulkActing, setIsBulkActing] = useState(false);
 
+  React.useEffect(() => {
+    async function verifyAuth() {
+      try {
+        const { checkAdminSession } = await import('../../actions/auth');
+        const isValid = await checkAdminSession();
+        if (!isValid) {
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('adminAuthorized');
+            alert("Your admin session cookie is missing or expired on Vercel. Redirecting to /portal_ad to log in with passcode India@2026!");
+            window.location.href = '/portal_ad';
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    verifyAuth();
+  }, []);
+
+  const handleActionError = (err: any, fallback: string) => {
+    const msg = typeof err === 'string' ? err : (err?.message || fallback);
+    if (msg.includes('Unauthorized') || msg.includes('log in') || msg.includes('Server Components render') || msg.includes('digest')) {
+      alert("Your administrative session cookie is missing or expired on Vercel. Please log in again at /portal_ad using India@2026.");
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('adminAuthorized');
+        window.location.href = '/portal_ad';
+      }
+    } else {
+      alert(msg);
+    }
+  };
+
   // Derived categories
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -98,10 +130,10 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
         }));
         closeEditor();
       } else {
-        alert("Failed to save changes.");
+        handleActionError(res.error, "Failed to save changes.");
       }
     } catch (e) {
-      alert("Error saving.");
+      handleActionError(e, "Error saving.");
     }
     setIsSaving(false);
   };
@@ -138,10 +170,10 @@ export default function GalleryClient({ initialProducts }: { initialProducts: Pr
         }));
         closeEditor();
       } else {
-        alert("Failed to delete image.");
+        handleActionError(res.error, "Failed to delete image.");
       }
     } catch (e) {
-      alert("Error deleting.");
+      handleActionError(e, "Error deleting.");
     }
     setIsSaving(false);
   };
