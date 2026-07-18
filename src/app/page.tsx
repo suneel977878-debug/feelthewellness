@@ -80,14 +80,10 @@ export default async function HomePage() {
 
   const heroProducts = products.filter(p => p.isHero);
 
-  // Select 12 attractive/lustful products for display (Top Featured Bestsellers showcasing Sex Dolls & Real Dildos)
+  // Select 12 attractive/lustful products for display (Top Featured Bestsellers showcasing our 12 Sex Dolls & Torsos)
   const featuredBestsellers = products
     .filter(p => p.isBestSeller)
-    .sort((a, b) => {
-      const aBoost = (a.name.includes('Doll') || a.category.includes('Doll') || a.name.includes('Dildo') || a.category.includes('Dildo') || a.name.includes('Torso')) ? 10000 : 0;
-      const bBoost = (b.name.includes('Doll') || b.category.includes('Doll') || b.name.includes('Dildo') || b.category.includes('Dildo') || b.name.includes('Torso')) ? 10000 : 0;
-      return (b.id + bBoost) - (a.id + aBoost);
-    })
+    .sort((a, b) => b.id - a.id)
     .slice(0, 12);
 
   // New Arrivals
