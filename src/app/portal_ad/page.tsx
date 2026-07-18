@@ -274,26 +274,26 @@ export default function AdminPage() {
   // Handle Login
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === 'Sunil@2026') {
-      try {
-        const { authenticate } = await import('../actions/auth');
-        const authRes = await authenticate(passcode);
-        if (authRes.success) {
-          setIsAuthorized(true);
-          if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
-          setAuthError('');
-          // Sync form states with context loaded configs
-          setPaytmMid(paytmConfig.mid);
-          setPaytmKey(paytmConfig.merchantKey);
-          setPaytmEnv(paytmConfig.environment);
-        } else {
-          setAuthError(authRes.error || 'Authentication failed on server.');
-        }
-      } catch (err: any) {
-        setAuthError('Error communicating with server.');
+    if (!passcode.trim()) {
+      setAuthError('Please enter the security passcode.');
+      return;
+    }
+    try {
+      const { authenticate } = await import('../actions/auth');
+      const authRes = await authenticate(passcode.trim());
+      if (authRes.success) {
+        setIsAuthorized(true);
+        if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
+        setAuthError('');
+        // Sync form states with context loaded configs
+        setPaytmMid(paytmConfig.mid);
+        setPaytmKey(paytmConfig.merchantKey);
+        setPaytmEnv(paytmConfig.environment);
+      } else {
+        setAuthError(authRes.error || 'Invalid administrator passcode. Please try again.');
       }
-    } else {
-      setAuthError('Invalid administrator passcode. Please try again.');
+    } catch (err: any) {
+      setAuthError('Error communicating with server.');
     }
   };
 
