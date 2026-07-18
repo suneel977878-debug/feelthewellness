@@ -585,12 +585,7 @@ export default function AdminPage() {
                 >
                   ⭐ Reviews Moderation
                 </button>
-                <button 
-                  className={`tab-btn ${activeTab === 'paytm' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('paytm')}
-                >
-                  💳 Paytm PG Config
-                </button>
+
                 <button 
                   className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
                   onClick={() => setActiveTab('settings')}
@@ -1162,72 +1157,7 @@ export default function AdminPage() {
               )}
 
               {/* TAB CONTENT: PAYTM CONFIG */}
-              {activeTab === 'paytm' && (
-                <div className="tab-body animate-fade-in">
-                  <h2>Paytm Business Settings</h2>
-                  <p className="tab-section-desc">Manage API credentials and switch sandbox layers for credit checkouts.</p>
 
-                  <div className="config-card-form">
-                    <form onSubmit={handleSavePaytm}>
-                      <div className="form-group">
-                        <label className="form-label" htmlFor="paytmenv">Gateway Mode</label>
-                        <select
-                          id="paytmenv"
-                          className="form-input"
-                          value={paytmEnv}
-                          onChange={(e) => setPaytmEnv(e.target.value as any)}
-                        >
-                          <option value="SIMULATED">(Recommended) Simulated Paytm Sandbox (Offline)</option>
-                          <option value="STAGE">Paytm Staging / Testing API (Online keys required)</option>
-                          <option value="PROD">Paytm Live Production Environment (Live keys required)</option>
-                        </select>
-                      </div>
-
-                      <div className="form-row-grid">
-                        <div className="form-group">
-                          <label className="form-label" htmlFor="paytmmid">Merchant ID (MID)</label>
-                          <input
-                            id="paytmmid"
-                            type="text"
-                            className="form-input"
-                            placeholder="Enter your Paytm MID"
-                            value={paytmMid}
-                            onChange={(e) => setPaytmMid(e.target.value)}
-                            disabled={paytmEnv === 'SIMULATED'}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label className="form-label" htmlFor="paytmkey">Merchant Key</label>
-                          <input
-                            id="paytmkey"
-                            type="password"
-                            className="form-input"
-                            placeholder="Enter your Merchant Key"
-                            value={paytmKey}
-                            onChange={(e) => setPaytmKey(e.target.value)}
-                            disabled={paytmEnv === 'SIMULATED'}
-                          />
-                        </div>
-                      </div>
-
-                      {paytmEnv === 'SIMULATED' ? (
-                        <div className="paytm-info-box alert-info">
-                          💡 <strong>Simulation Mode Active:</strong> You do not need any Paytm credentials. The checkout will redirect to our simulated checkout portal matching Paytm's exact callback schemas. Ideal for presentation and local evaluations.
-                        </div>
-                      ) : (
-                        <div className="paytm-info-box alert-warning">
-                          ⚠️ <strong>Keys Required:</strong> To test Staging or Production checkout flow online, you must enter valid merchant credentials. Ensure your callback URLs are configured on the Paytm Developer dashboard.
-                        </div>
-                      )}
-
-                      <button type="submit" className="btn btn-primary save-paytm-btn">
-                        Apply Gateway Settings
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              )}
 
               {/* TAB CONTENT: SETTINGS */}
               {activeTab === 'settings' && (

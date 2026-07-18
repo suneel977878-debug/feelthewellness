@@ -24,8 +24,8 @@ export default function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Manual UPI & Gateway States
-  const [paymentMode, setPaymentMode] = useState<'paytm' | 'upi'>('upi');
+  // Manual UPI States
+  const paymentMode = 'upi';
   const [paymentApp, setPaymentApp] = useState<'paytm' | 'gpay' | 'phonepe'>('phonepe');
   const [utrNumber, setUtrNumber] = useState('');
 
@@ -121,38 +121,6 @@ export default function CartPage() {
       localStorage.setItem('lp_last_customer_name', fullName);
       localStorage.setItem('lp_last_customer_phone', phoneNumber);
       localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
-
-      if (paymentMode === 'paytm') {
-        const res = await fetch('/api/paytm/initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: orderTotal,
-            customer: {
-              name: fullName,
-              phone: phoneNumber,
-              address: `${address}, ${city}, ${stateName} - ${zipCode}`
-            },
-            items: cart,
-            paytmConfig
-          })
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || 'Failed to initiate Paytm gateway checkout.');
-        }
-        const data = await res.json();
-        if (data.isMock) {
-          router.push(`/paytm-mock?orderId=${encodeURIComponent(data.orderId)}&amount=${data.amount}&callbackUrl=${encodeURIComponent(data.callbackUrl)}`);
-          return;
-        } else if (data.txnToken && data.orderId) {
-          if (data.redirectUrl) {
-            window.location.href = data.redirectUrl;
-            return;
-          }
-        }
-        throw new Error('Invalid response from Paytm gateway.');
-      }
 
       // Manual UPI Flow
       const orderId = `LP-ORD-REG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -369,31 +337,8 @@ export default function CartPage() {
                         />
                       </div>
 
-                      {/* Payment Method Toggle Section */}
-                      <div className="payment-method-toggle" style={{ margin: '24px 0', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
-                        <h4 style={{ marginBottom: '12px', color: 'var(--accent-color)' }}>Select Payment Method</h4>
-                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            className={`btn ${paymentMode === 'upi' ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ flex: 1, minWidth: '200px', padding: '12px' }}
-                            onClick={() => setPaymentMode('upi')}
-                          >
-                            ⚡ Manual UPI QR Code / UTR
-                          </button>
-                          <button
-                            type="button"
-                            className={`btn ${paymentMode === 'paytm' ? 'btn-primary' : 'btn-secondary'}`}
-                            style={{ flex: 1, minWidth: '200px', padding: '12px' }}
-                            onClick={() => setPaymentMode('paytm')}
-                          >
-                            🔒 Paytm Gateway (Cards/UPI/Wallet)
-                          </button>
-                        </div>
-                      </div>
-
                       {/* Manual UPI Payment Section */}
-                      {paymentMode === 'upi' && (
+                      {true && (
                         <div className="upi-payment-section">
                           <h4>1. Select your UPI App</h4>
                           <div className="upi-app-selectors">
