@@ -119,7 +119,9 @@ export default function CatalogClient({ products }: { products: Product[] }) {
           selectedCategory === 'All' || 
           (selectedCategory === 'Sex Dolls' 
             ? (product.subcategory === 'Sex Dolls' || product.category === 'Sex Dolls') 
-            : product.category === selectedCategory);
+            : selectedCategory === 'BDSM & Bondage'
+              ? (product.subcategory === 'Bondage & BDSM' || product.category === 'BDSM & Bondage')
+              : product.category === selectedCategory);
 
         // Subcategory Filter
         const matchesSubcategory = 
@@ -249,7 +251,15 @@ export default function CatalogClient({ products }: { products: Product[] }) {
                 All Collections <span className="cat-count">{products.length}</span>
               </button>
               {categoryTree.map((cat) => {
-                const count = products.filter((p) => p.category === cat.name).length;
+                const count = products.filter((p) => {
+                  if (cat.name === 'Sex Dolls') {
+                    return p.subcategory === 'Sex Dolls' || p.category === 'Sex Dolls';
+                  }
+                  if (cat.name === 'BDSM & Bondage') {
+                    return p.subcategory === 'Bondage & BDSM' || p.category === 'BDSM & Bondage';
+                  }
+                  return p.category === cat.name;
+                }).length;
                 const isExpanded = expandedCategory === cat.name;
                 return (
                   <div key={cat.id} className="category-accordion-group">
@@ -267,7 +277,23 @@ export default function CatalogClient({ products }: { products: Product[] }) {
                     {isExpanded && (
                       <div className="subcategories-list">
                         {cat.subcategories.map(sub => {
-                          const subCount = products.filter(p => p.category === cat.name && (sub === 'All Toys' || sub === 'All' || sub.startsWith('All ') || p.subcategory === sub || (!p.subcategory && sub === 'All Toys'))).length;
+                          const subCount = products.filter(p => {
+                            const belongsToCategory = cat.name === 'Sex Dolls'
+                              ? (p.subcategory === 'Sex Dolls' || p.category === 'Sex Dolls')
+                              : cat.name === 'BDSM & Bondage'
+                                ? (p.subcategory === 'Bondage & BDSM' || p.category === 'BDSM & Bondage')
+                                : (p.category === cat.name);
+                            if (!belongsToCategory) return false;
+                            
+                            return (
+                              sub === 'All Toys' || 
+                              sub === 'All' || 
+                              sub.startsWith('All ') || 
+                              sub === 'All Dolls' ||
+                              p.subcategory === sub || 
+                              (!p.subcategory && sub === 'All Toys')
+                            );
+                          }).length;
                           return (
                             <button
                               key={sub}
