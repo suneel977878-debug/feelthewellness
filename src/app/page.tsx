@@ -138,7 +138,7 @@ export default async function HomePage() {
                       src={imgSrc}
                       alt={cat.displayName}
                       fill
-                      priority={true}
+                      priority={index < 4}
                       sizes="110px"
                       className="category-image"
                     />

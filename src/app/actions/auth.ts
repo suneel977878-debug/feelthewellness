@@ -26,3 +26,13 @@ export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete('admin_session');
 }
+
+export async function verifyAdminAuth(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const session = cookieStore.get('admin_session');
+  const expectedToken = process.env.ADMIN_SESSION_TOKEN || 'fallback_secure_token_123';
+  if (!session || session.value !== expectedToken) {
+    throw new Error('Unauthorized administrative action. Please log in to the admin portal.');
+  }
+  return true;
+}

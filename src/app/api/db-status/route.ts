@@ -27,7 +27,7 @@ export async function GET() {
       errorMessage: error.message,
       errorCode: error.code,
       errorErrno: error.errno,
-      errorStack: error.stack
+      errorStack: process.env.NODE_ENV === 'production' ? undefined : error.stack
     }, { status: 500 });
   }
 }

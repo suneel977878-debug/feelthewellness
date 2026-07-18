@@ -1,7 +1,8 @@
 'use server';
 
 import pool from '../../lib/db';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { verifyAdminAuth } from './auth';
 
 export async function updateProductImageConfig(
   productId: number,
@@ -9,6 +10,7 @@ export async function updateProductImageConfig(
   imageCrops: { zoom: number; x: number; y: number }[]
 ) {
   try {
+    await verifyAdminAuth();
     await pool.query(
       `UPDATE Product SET images = ?, imageCrops = ?, updatedAt = NOW() WHERE id = ?`,
       [
@@ -18,7 +20,8 @@ export async function updateProductImageConfig(
       ]
     );
     
-    // Revalidate paths so the changes reflect immediately
+    // Revalidate paths & tags so changes reflect immediately everywhere
+    revalidateTag('products', 'max');
     revalidatePath(`/product/${productId}`);
     revalidatePath('/');
     revalidatePath('/catalog');

@@ -1,6 +1,8 @@
 'use server';
 
 import pool from '../../lib/db';
+import { verifyAdminAuth } from './auth';
+
 export interface Order {
   id?: string;
   orderId: string;
@@ -51,6 +53,7 @@ function mapDbOrder(dbOrder: any): Order {
 }
 
 export async function getOrders() {
+  await verifyAdminAuth();
   try {
     const [rows] = await pool.query('SELECT * FROM `Order` ORDER BY createdAt DESC');
     const orders = rows as any[];
@@ -132,6 +135,7 @@ export async function createOrder(data: Omit<Order, 'id' | 'date'>) {
 }
 
 export async function updateOrderStatus(orderId: string, status: 'VERIFIED' | 'FAILED') {
+  await verifyAdminAuth();
   await pool.query('UPDATE `Order` SET status = ?, updatedAt = NOW() WHERE orderId = ?', [status, orderId]);
   
   const [rows] = await pool.query('SELECT * FROM `Order` WHERE orderId = ?', [orderId]);
@@ -145,6 +149,7 @@ export async function updateOrderStatus(orderId: string, status: 'VERIFIED' | 'F
 }
 
 export async function updateDeliveryTracking(orderId: string, status: 'PROCESSING' | 'SHIPPED' | 'DELIVERED', note: string) {
+  await verifyAdminAuth();
   await pool.query('UPDATE `Order` SET deliveryStatus = ?, deliveryNote = ?, updatedAt = NOW() WHERE orderId = ?', [status, note, orderId]);
   
   const [rows] = await pool.query('SELECT * FROM `Order` WHERE orderId = ?', [orderId]);
@@ -158,6 +163,7 @@ export async function updateDeliveryTracking(orderId: string, status: 'PROCESSIN
 }
 
 export async function clearOrders() {
+  await verifyAdminAuth();
   await pool.query('DELETE FROM OrderItem');
   await pool.query('DELETE FROM `Order`');
   return true;

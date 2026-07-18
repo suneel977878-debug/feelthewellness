@@ -53,43 +53,64 @@ function mapDbProduct(p: any): Product {
 }
 
 import pool from '../../lib/db';
+import { unstable_cache, revalidateTag } from 'next/cache';
+import { verifyAdminAuth } from './auth';
 
-export async function getProducts() {
-  try {
-    const [rows] = await pool.query('SELECT * FROM Product ORDER BY createdAt DESC');
-    return (rows as any[]).map(mapDbProduct);
-  } catch (error) {
-    console.error("MySQL Fetch Error:", error);
-    return [];
-  }
-}
+export const getProducts = unstable_cache(
+  async () => {
+    try {
+      const [rows] = await pool.query('SELECT * FROM Product ORDER BY createdAt DESC');
+      return (rows as any[]).map(mapDbProduct);
+    } catch (error) {
+      console.error("MySQL Fetch Error:", error);
+      return [];
+    }
+  },
+  ['all_products'],
+  { tags: ['products'], revalidate: 60 }
+);
 
 export async function getProductById(id: number) {
-  try {
-    const [rows] = await pool.query('SELECT * FROM Product WHERE id = ?', [id]);
-    const products = rows as any[];
-    if (products.length === 0) return null;
-    return mapDbProduct(products[0]);
-  } catch (error) {
-    console.error("MySQL Fetch Error:", error);
-    return null;
-  }
+  const cachedFn = unstable_cache(
+    async (productId: number) => {
+      try {
+        const [rows] = await pool.query('SELECT * FROM Product WHERE id = ?', [productId]);
+        const products = rows as any[];
+        if (products.length === 0) return null;
+        return mapDbProduct(products[0]);
+      } catch (error) {
+        console.error("MySQL Fetch Error:", error);
+        return null;
+      }
+    },
+    [`product_by_id_${id}`],
+    { tags: ['products'], revalidate: 60 }
+  );
+  return await cachedFn(id);
 }
 
 export async function getRelatedProducts(category: string, excludeId: number, limit: number = 4) {
-  try {
-    const [rows] = await pool.query(
-      'SELECT * FROM Product WHERE category = ? AND id != ? ORDER BY isBestSeller DESC, id DESC LIMIT ?',
-      [category, excludeId, limit]
-    );
-    return (rows as any[]).map(mapDbProduct);
-  } catch (error) {
-    console.error("MySQL Fetch Error:", error);
-    return [];
-  }
+  const cachedFn = unstable_cache(
+    async (cat: string, exId: number, lim: number) => {
+      try {
+        const [rows] = await pool.query(
+          'SELECT * FROM Product WHERE category = ? AND id != ? ORDER BY isBestSeller DESC, id DESC LIMIT ?',
+          [cat, exId, lim]
+        );
+        return (rows as any[]).map(mapDbProduct);
+      } catch (error) {
+        console.error("MySQL Fetch Error:", error);
+        return [];
+      }
+    },
+    [`related_products_${category}_${excludeId}_${limit}`],
+    { tags: ['products'], revalidate: 60 }
+  );
+  return await cachedFn(category, excludeId, limit);
 }
 
 export async function createProduct(data: Omit<Product, 'id'>) {
+  await verifyAdminAuth();
   const [result] = await pool.query(
     `INSERT INTO Product (name, price, description, images, category, subcategory, features, isNew, isHero, isBestSeller, isOnSale, discountPercent, rating, reviews, color, silhouetteType, defaultZoom, defaultZoomX, defaultZoomY, imageCrops, updatedAt)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
@@ -106,10 +127,12 @@ export async function createProduct(data: Omit<Product, 'id'>) {
   
   const insertId = (result as any).insertId;
   const [rows] = await pool.query('SELECT * FROM Product WHERE id = ?', [insertId]);
+  revalidateTag('products', 'max');
   return mapDbProduct((rows as any[])[0]);
 }
 
 export async function updateProduct(data: Product) {
+  await verifyAdminAuth();
   await pool.query(
     `UPDATE Product SET name = ?, price = ?, description = ?, images = ?, category = ?, subcategory = ?, features = ?, isNew = ?, isHero = ?, isBestSeller = ?, isOnSale = ?, discountPercent = ?, rating = ?, reviews = ?, color = ?, silhouetteType = ?, defaultZoom = ?, defaultZoomX = ?, defaultZoomY = ?, imageCrops = ?, updatedAt = NOW() WHERE id = ?`,
     [
@@ -125,15 +148,19 @@ export async function updateProduct(data: Product) {
   );
   
   const [rows] = await pool.query('SELECT * FROM Product WHERE id = ?', [data.id]);
+  revalidateTag('products', 'max');
   return mapDbProduct((rows as any[])[0]);
 }
 
 export async function deleteProduct(id: number) {
+  await verifyAdminAuth();
   await pool.query('DELETE FROM Product WHERE id = ?', [id]);
+  revalidateTag('products', 'max');
   return true;
 }
 
 export async function bulkUpdatePrices(productIds: number[], type: 'increase' | 'decrease', unit: 'amount' | 'percentage', value: number) {
+  await verifyAdminAuth();
   if (productIds.length === 0) return true;
   
   const placeholders = productIds.map(() => '?').join(',');
@@ -161,5 +188,6 @@ export async function bulkUpdatePrices(productIds: number[], type: 'increase' | 
       ]
     );
   }
+  revalidateTag('products', 'max');
   return true;
 }
