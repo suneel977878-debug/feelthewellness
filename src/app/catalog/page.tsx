@@ -33,22 +33,7 @@ export default function CatalogPage() {
   return (
     <div className="catalog-layout">
       <Header />
-      
-      <Suspense fallback={
-        <div className="flex-center" style={{ minHeight: '60vh', flexDirection: 'column', gap: '20px' }}>
-          <div style={{
-              width: '50px',
-              height: '50px',
-              border: '3px solid rgba(212, 175, 55, 0.1)',
-              borderRadius: '50%',
-              borderTopColor: 'var(--accent)',
-              animation: 'spin 1s ease-in-out infinite'
-          }}></div>
-          <p>Unlocking sensual delights...</p>
-        </div>
-      }>
-        <CatalogData />
-      </Suspense>
+      <CatalogData />
       <Footer />
     </div>
   );

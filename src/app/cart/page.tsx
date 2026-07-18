@@ -203,8 +203,46 @@ export default function CartPage() {
             <h1 className="cart-page-title glow-text">Your Intimacy Basket</h1>
             
             {!isLoaded ? (
-              <div className="flex-center" style={{ minHeight: '40vh', flexDirection: 'column', gap: '20px' }}>
-                <div className="spinner"></div>
+              <div className="cart-flex-container skeleton-pulse" style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                {/* Left: Cart Items list skeleton */}
+                <div className="cart-items-column">
+                  <div className="cart-card" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '24px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                      <div style={{ width: '120px', height: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                      <div style={{ width: '140px', height: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      {[1, 2].map((i) => (
+                        <div key={i} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px' }}>
+                          <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}></div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ width: '60%', height: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                            <div style={{ width: '30%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Right: Summary Column skeleton */}
+                <div className="cart-summary-column">
+                  <div className="cart-card" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ width: '100px', height: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                    <div style={{ height: '1px', background: 'var(--border-color)' }}></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ width: '60px', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                        <div style={{ width: '40px', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ width: '80px', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                        <div style={{ width: '40px', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}></div>
+                      </div>
+                    </div>
+                    <div style={{ height: '1px', background: 'var(--border-color)' }}></div>
+                    <div style={{ width: '100%', height: '48px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}></div>
+                  </div>
+                </div>
               </div>
             ) : cart.length > 0 ? (
               <div className="cart-flex-container">
