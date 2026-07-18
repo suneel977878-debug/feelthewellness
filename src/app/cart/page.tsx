@@ -401,6 +401,19 @@ export default function CartPage() {
                             >
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span> Open Paytm Chat & Send Money
                             </a>
+                            <a 
+                              href={getGpayLink()}
+                              className="btn"
+                              style={{ background: '#4285F4', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              onClick={() => {
+                                setPaymentApp('gpay');
+                                localStorage.setItem('lp_last_customer_name', fullName);
+                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
+                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+                              }}
+                            >
+                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
+                            </a>
                           </div>
                           
                           <div className="upi-payment-instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
