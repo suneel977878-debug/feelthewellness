@@ -412,11 +412,11 @@ export default function CartPage() {
                       {true && (
                         <div className="upi-payment-section">
                           <h4>1. Tap to Chat & Pay (Select App)</h4>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '24px', marginTop: '16px' }}>
+                            {/* PhonePe */}
                             <a 
                               href={getPhonePeLink()}
-                              className="btn"
-                              style={{ background: '#5f259f', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
                               onClick={() => {
                                 setPaymentApp('phonepe');
                                 localStorage.setItem('lp_last_customer_name', fullName);
@@ -424,12 +424,31 @@ export default function CartPage() {
                                 localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
                               }}
                             >
-                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>पे</span> Open PhonePe & Pay to Number
+                              <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '50%',
+                                background: '#5f259f',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.8rem',
+                                color: '#fff',
+                                boxShadow: '0 4px 12px rgba(95, 37, 159, 0.3)',
+                                transition: 'transform 0.2s ease',
+                                cursor: 'pointer'
+                              }}
+                              className="payment-circle-btn"
+                              >
+                                पे
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>PhonePe</span>
                             </a>
+
+                            {/* Paytm */}
                             <a 
                               href={getPaytmLink()}
-                              className="btn"
-                              style={{ background: '#00baf2', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
                               onClick={() => {
                                 setPaymentApp('paytm');
                                 localStorage.setItem('lp_last_customer_name', fullName);
@@ -437,12 +456,31 @@ export default function CartPage() {
                                 localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
                               }}
                             >
-                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span> Open Paytm Chat & Send Money
+                              <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '50%',
+                                background: '#00baf2',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.8rem',
+                                color: '#fff',
+                                boxShadow: '0 4px 12px rgba(0, 186, 242, 0.3)',
+                                transition: 'transform 0.2s ease',
+                                cursor: 'pointer'
+                              }}
+                              className="payment-circle-btn"
+                              >
+                                ₹
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Paytm</span>
                             </a>
+
+                            {/* Google Pay */}
                             <a 
                               href={getGpayLink()}
-                              className="btn"
-                              style={{ background: '#4285F4', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
                               onClick={() => {
                                 setPaymentApp('gpay');
                                 localStorage.setItem('lp_last_customer_name', fullName);
@@ -450,7 +488,25 @@ export default function CartPage() {
                                 localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
                               }}
                             >
-                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
+                              <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '50%',
+                                background: '#4285F4',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1.8rem',
+                                color: '#fff',
+                                boxShadow: '0 4px 12px rgba(66, 133, 244, 0.3)',
+                                transition: 'transform 0.2s ease',
+                                cursor: 'pointer'
+                              }}
+                              className="payment-circle-btn"
+                              >
+                                G
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>GPay</span>
                             </a>
                           </div>
                           
