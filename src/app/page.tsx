@@ -92,7 +92,7 @@ export default async function HomePage() {
 
   // Map category images
   const categoryImages: Record<string, string> = {
-    'Sex Dolls': '/categories/circ_cat_male_1783348503157.webp',
+    'Sex Dolls': '/categories/circ_cat_sexdolls.jpg',
     'Women Sex Toys': '/categories/circ_cat_vibrator_1783348478935.webp',
     'Men Sex Toys': '/categories/circ_cat_male_1783348503157.webp',
     'Couples Toys': '/categories/circ_cat_couples_1783348542596.webp',
