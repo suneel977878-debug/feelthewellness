@@ -373,13 +373,6 @@ export default function CartPage() {
                       {/* Manual UPI Payment Section */}
                       {true && (
                         <div className="upi-payment-section">
-                          <div className="upi-limit-warning" style={{ background: 'rgba(255, 193, 7, 0.08)', border: '1px solid var(--accent)', borderRadius: '12px', padding: '16px', marginBottom: '24px', fontSize: '0.9rem', color: '#ffb300' }}>
-                            ⚠️ <strong>Avoid Bank Limit Errors (No ₹2,000 QR Limit)</strong>
-                            <p style={{ margin: '8px 0 0', lineHeight: '1.5', color: '#ccc' }}>
-                              Most banks restrict standard QR code payments above ₹2,000. To pay successfully, select an option below to pay directly to our mobile number <strong>{storePhone}</strong>:
-                            </p>
-                          </div>
-
                           <h4>1. Tap to Chat & Pay (Select App)</h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
                             <a 
@@ -407,19 +400,6 @@ export default function CartPage() {
                               }}
                             >
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span> Open Paytm Chat & Send Money
-                            </a>
-                            <a 
-                              href={getGpayLink()}
-                              className="btn"
-                              style={{ background: '#4285F4', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
-                              onClick={() => {
-                                setPaymentApp('gpay');
-                                localStorage.setItem('lp_last_customer_name', fullName);
-                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
-                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
-                              }}
-                            >
-                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
                             </a>
                           </div>
                           
