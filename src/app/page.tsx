@@ -80,11 +80,11 @@ export default async function HomePage() {
 
   const heroProducts = products.filter(p => p.isHero);
 
-  // Select 4 attractive/lustful products for display (Top Featured)
+  // Select 8 attractive/lustful products for display (Top Featured Bestsellers including Real Dildos)
   const featuredBestsellers = products
     .filter(p => p.isBestSeller)
     .sort((a, b) => b.id - a.id)
-    .slice(0, 4);
+    .slice(0, 8);
 
   // New Arrivals
   const newArrivals = [...products]

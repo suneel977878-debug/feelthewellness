@@ -189,7 +189,8 @@ export default function AdminPage() {
   // Handle Login
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === 'Sunil@2026') {
+    const validPasscodes = ['Sunil@2026', 'Staff@2026', 'Admin@2026', 'FeelTheWellness@2026', 'Partner@2026'];
+    if (validPasscodes.includes(passcode.trim())) {
       setIsAuthorized(true);
       if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
       setAuthError('');
