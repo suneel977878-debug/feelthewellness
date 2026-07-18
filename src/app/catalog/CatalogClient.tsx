@@ -35,9 +35,25 @@ export default function CatalogClient({ products }: { products: Product[] }) {
     setSelectedCategory(cat);
     if (cat !== 'All') setExpandedCategory(cat);
     setSelectedSubcategory(searchParams?.get('subcategory') || 'All');
-    setSearchQuery(searchParams?.get('search') || '');
-    setPage(1); // Reset page on filter change
+    const urlSearch = searchParams?.get('search') || '';
+    if (!searchTimeoutRef.current && urlSearch !== searchQuery) {
+      setSearchQuery(urlSearch);
+    }
+    const urlSort = searchParams?.get('sort');
+    if (urlSort) {
+      setSortOption(urlSort);
+    }
   }, [searchParams]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, selectedSubcategory, searchQuery, sortOption, priceRange, showSaleOnly]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, []);
 
   // Update URL parameters helper
   const updateUrl = (category: string, subcategory: string, search: string) => {
@@ -73,12 +89,14 @@ export default function CatalogClient({ products }: { products: Product[] }) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchQuery(val);
+    setPage(1);
     
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
     searchTimeoutRef.current = setTimeout(() => {
+      searchTimeoutRef.current = null;
       updateUrl(selectedCategory, selectedSubcategory, val);
     }, 400);
   };
@@ -243,7 +261,7 @@ export default function CatalogClient({ products }: { products: Product[] }) {
                     {isExpanded && (
                       <div className="subcategories-list">
                         {cat.subcategories.map(sub => {
-                          const subCount = products.filter(p => p.category === cat.name && (p.subcategory === sub || (sub === 'All Toys' && !p.subcategory))).length;
+                          const subCount = products.filter(p => p.category === cat.name && (sub === 'All Toys' || sub === 'All' || sub.startsWith('All ') || p.subcategory === sub || (!p.subcategory && sub === 'All Toys'))).length;
                           return (
                             <button
                               key={sub}

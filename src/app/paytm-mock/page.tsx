@@ -16,8 +16,20 @@ function PaytmMockContent() {
   const [selectedMethod, setSelectedMethod] = useState('qr');
   const [loadingState, setLoadingState] = useState(''); // '', 'processing', 'redirecting'
   const [targetStatus, setTargetStatus] = useState<'SUCCESS' | 'FAILED' | 'CANCELLED'>('SUCCESS');
+  const intervalRef = React.useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   const handleSimulatePayment = (status: 'SUCCESS' | 'FAILED' | 'CANCELLED') => {
+    if (status === 'CANCELLED') {
+      window.location.href = '/cart';
+      return;
+    }
+
     setTargetStatus(status);
     setLoadingState('processing');
 
@@ -29,12 +41,12 @@ function PaytmMockContent() {
     ];
 
     let currentPhraseIdx = 0;
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (currentPhraseIdx < phrases.length) {
         setLoadingState(phrases[currentPhraseIdx]);
         currentPhraseIdx++;
       } else {
-        clearInterval(interval);
+        if (intervalRef.current) clearInterval(intervalRef.current);
         submitCallback(status);
       }
     }, 1000);

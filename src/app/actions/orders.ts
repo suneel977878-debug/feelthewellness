@@ -27,27 +27,28 @@ export interface Order {
 }
 
 // Helper to convert DB Order to app Order
+// Helper to convert DB Order to app Order
 function mapDbOrder(dbOrder: any): Order {
   return {
     id: dbOrder.id,
     orderId: dbOrder.orderId,
-    amount: dbOrder.amount,
+    amount: dbOrder.amount || 0,
     date: dbOrder.createdAt ? new Date(dbOrder.createdAt).toISOString() : new Date().toISOString(),
-    status: dbOrder.status as any,
+    status: dbOrder.status as any || 'PENDING',
     deliveryStatus: dbOrder.deliveryStatus as any || undefined,
     deliveryNote: dbOrder.deliveryNote || undefined,
     utr: dbOrder.utr || undefined,
     paymentApp: dbOrder.paymentApp || undefined,
     customer: {
-      name: dbOrder.customerName,
-      phone: dbOrder.customerPhone,
-      address: dbOrder.customerAddress
+      name: dbOrder.customerName || 'Guest Customer',
+      phone: dbOrder.customerPhone || 'N/A',
+      address: dbOrder.customerAddress || 'N/A'
     },
-    items: dbOrder.items.map((item: any) => ({
+    items: (dbOrder.items || []).map((item: any) => ({
       id: item.productId,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity
+      name: item.name || 'Unknown Item',
+      price: item.price || 0,
+      quantity: item.quantity || 1
     }))
   };
 }
@@ -57,13 +58,23 @@ export async function getOrders() {
   try {
     const [rows] = await pool.query('SELECT * FROM `Order` ORDER BY createdAt DESC');
     const orders = rows as any[];
+    if (orders.length === 0) return [];
     
-    // Fetch items for each order
+    // Fetch all items in a single query (resolving N+1 problem)
+    const orderIds = orders.map(o => o.id);
+    const [itemRows] = await pool.query('SELECT * FROM OrderItem WHERE orderId IN (?)', [orderIds]);
+    const allItems = itemRows as any[];
+    
+    // Group items by orderId in memory
+    const itemsByOrderId = new Map<number, any[]>();
+    for (const item of allItems) {
+      const list = itemsByOrderId.get(item.orderId) || [];
+      list.push(item);
+      itemsByOrderId.set(item.orderId, list);
+    }
+    
     for (const order of orders) {
-      const [itemRows] = await pool.query('SELECT * FROM OrderItem WHERE orderId = ?', [order.id]);
-      order.items = itemRows;
-      
-      // Date conversion to match Prisma structure
+      order.items = itemsByOrderId.get(order.id) || [];
       order.date = order.createdAt;
     }
     
@@ -97,10 +108,10 @@ export async function verifyAndGetOrder(displayId: string, phone: string): Promi
   if (!order) return null;
   
   // Basic normalization for comparison (strip spaces/dashes)
-  const cleanPhone = phone.replace(/\D/g, '');
-  const orderPhone = order.customer.phone.replace(/\D/g, '');
+  const cleanPhone = (phone || '').replace(/\D/g, '');
+  const orderPhone = (order.customer?.phone || '').replace(/\D/g, '');
   
-  if (cleanPhone === orderPhone || phone.toLowerCase() === order.customer.phone.toLowerCase()) {
+  if (cleanPhone && (cleanPhone === orderPhone || (phone || '').toLowerCase() === (order.customer?.phone || '').toLowerCase())) {
     return order;
   }
   return null;
@@ -113,22 +124,33 @@ export async function createOrder(data: Omit<Order, 'id' | 'date'>) {
     return existingOrder;
   }
 
-  const [result] = await pool.query(
-    `INSERT INTO \`Order\` (orderId, amount, status, deliveryStatus, deliveryNote, utr, paymentApp, customerName, customerPhone, customerAddress, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-    [
-      data.orderId, data.amount, data.status, data.deliveryStatus || null, data.deliveryNote || null,
-      data.utr || null, data.paymentApp || null, data.customer.name, data.customer.phone, data.customer.address
-    ]
-  );
-  
-  const insertId = (result as any).insertId;
-  
-  for (const item of data.items) {
-    await pool.query(
-      `INSERT INTO OrderItem (productId, name, price, quantity, orderId) VALUES (?, ?, ?, ?, ?)`,
-      [item.id, item.name, item.price, item.quantity, insertId]
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [result] = await connection.query(
+      `INSERT INTO \`Order\` (orderId, amount, status, deliveryStatus, deliveryNote, utr, paymentApp, customerName, customerPhone, customerAddress, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [
+        data.orderId, data.amount, data.status || 'PENDING', data.deliveryStatus || null, data.deliveryNote || null,
+        data.utr || null, data.paymentApp || null, data.customer?.name || 'Guest Customer', data.customer?.phone || 'N/A', data.customer?.address || 'N/A'
+      ]
     );
+    
+    const insertId = (result as any).insertId;
+    
+    for (const item of (data.items || [])) {
+      await connection.query(
+        `INSERT INTO OrderItem (productId, name, price, quantity, orderId) VALUES (?, ?, ?, ?, ?)`,
+        [item.id, item.name, item.price, item.quantity, insertId]
+      );
+    }
+    
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
   
   return await getOrderByDisplayId(data.orderId) as Order;
@@ -140,6 +162,7 @@ export async function updateOrderStatus(orderId: string, status: 'VERIFIED' | 'F
   
   const [rows] = await pool.query('SELECT * FROM `Order` WHERE orderId = ?', [orderId]);
   const order = (rows as any[])[0];
+  if (!order) throw new Error('Order not found after status update');
   order.date = order.createdAt;
   
   const [itemRows] = await pool.query('SELECT * FROM OrderItem WHERE orderId = ?', [order.id]);
@@ -154,6 +177,7 @@ export async function updateDeliveryTracking(orderId: string, status: 'PROCESSIN
   
   const [rows] = await pool.query('SELECT * FROM `Order` WHERE orderId = ?', [orderId]);
   const order = (rows as any[])[0];
+  if (!order) throw new Error('Order not found after delivery tracking update');
   order.date = order.createdAt;
   
   const [itemRows] = await pool.query('SELECT * FROM OrderItem WHERE orderId = ?', [order.id]);
@@ -164,7 +188,17 @@ export async function updateDeliveryTracking(orderId: string, status: 'PROCESSIN
 
 export async function clearOrders() {
   await verifyAdminAuth();
-  await pool.query('DELETE FROM OrderItem');
-  await pool.query('DELETE FROM `Order`');
-  return true;
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.query('DELETE FROM OrderItem');
+    await connection.query('DELETE FROM `Order`');
+    await connection.commit();
+    return true;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }

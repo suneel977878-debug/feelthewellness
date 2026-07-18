@@ -6,21 +6,23 @@ import { useSearchParams } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useCart } from '../../context/CartContext';
-import { createOrder } from '../actions/orders';
+import { createOrder, getOrderByDisplayId } from '../actions/orders';
 
 function PaymentStatusContent() {
   const searchParams = useSearchParams();
   const { cart, clearCart } = useCart();
 
   // Retrieve parameters
-  const status = searchParams.get('status') || 'FAILED';
+  const initialStatus = searchParams.get('status') || 'FAILED';
+  const [currentStatus, setCurrentStatus] = React.useState<string>(initialStatus);
+
   const orderId = searchParams.get('orderId') || 'N/A';
   const txnId = searchParams.get('txnId') || 'N/A';
   const amount = searchParams.get('amount') || '0';
   const respMsg = searchParams.get('respMsg') || 'The transaction was cancelled or declined by your bank.';
 
-  const isSuccess = status === 'SUCCESS';
-  const isPending = status === 'PENDING';
+  const isSuccess = currentStatus === 'SUCCESS' || currentStatus === 'VERIFIED';
+  const isPending = currentStatus === 'PENDING';
   const utr = searchParams.get('utr') || '';
   const paymentApp = searchParams.get('app') || '';
 
@@ -30,27 +32,49 @@ function PaymentStatusContent() {
   useEffect(() => {
     if ((isSuccess || isPending) && cart.length > 0 && !hasSubmitted.current) {
       hasSubmitted.current = true;
-      createOrder({
-        orderId: orderId,
-        amount: parseFloat(amount),
-        status: isPending ? 'PENDING' : 'VERIFIED',
-        utr: utr,
-        paymentApp: paymentApp,
-        customer: {
-          name: localStorage.getItem('lp_last_customer_name') || 'Guest Customer',
-          phone: localStorage.getItem('lp_last_customer_phone') || 'N/A',
-          address: localStorage.getItem('lp_last_customer_address') || 'N/A'
-        },
-        items: cart.map(item => ({
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          quantity: item.quantity
-        }))
-      });
-      clearCart();
+      (async () => {
+        try {
+          await createOrder({
+            orderId: orderId,
+            amount: parseFloat(amount),
+            status: isPending ? 'PENDING' : 'VERIFIED',
+            utr: utr,
+            paymentApp: paymentApp,
+            customer: {
+              name: localStorage.getItem('lp_last_customer_name') || 'Guest Customer',
+              phone: localStorage.getItem('lp_last_customer_phone') || 'N/A',
+              address: localStorage.getItem('lp_last_customer_address') || 'N/A'
+            },
+            items: cart.map(item => ({
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity
+            }))
+          });
+          clearCart();
+        } catch (err) {
+          console.error("Error creating order on status page:", err);
+        }
+      })();
     }
   }, [isSuccess, isPending, cart, clearCart, orderId, amount, utr, paymentApp]);
+
+  // Polling for PENDING status updates
+  useEffect(() => {
+    if (currentStatus !== 'PENDING' || orderId === 'N/A') return;
+    const interval = setInterval(async () => {
+      try {
+        const order = await getOrderByDisplayId(orderId);
+        if (order && (order.status === 'VERIFIED' || order.status === 'FAILED')) {
+          setCurrentStatus(order.status);
+        }
+      } catch (err) {
+        console.error("Polling status error:", err);
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [currentStatus, orderId]);
 
   return (
     <div className="status-page-layout flex-center">

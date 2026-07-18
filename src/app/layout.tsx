@@ -48,6 +48,7 @@ export const metadata: Metadata = {
 
 import { getProducts } from "./actions/products";
 import { getStoreConfig, getPromos } from "./actions/config";
+import AgeGate from "../components/AgeGate";
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,7 @@ export default async function RootLayout({
       </head>
       <body>
         <CartProvider initialConfig={config} initialPromos={promos}>
+          <AgeGate />
           {children}
         </CartProvider>
       </body>

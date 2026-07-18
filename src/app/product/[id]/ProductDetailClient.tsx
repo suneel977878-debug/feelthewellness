@@ -17,14 +17,23 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isSafetyExpanded, setIsSafetyExpanded] = useState(false);
-  
-  // Image zoom state removed for user
+  const [userZoom, setUserZoom] = useState(1.0);
+  const notifTimeoutRef = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    };
+  }, []);
 
   // Generate the 4 gallery images for the product dynamically
   const galleryImages = useMemo(() => {
-    if (!product || !product.images) return [];
+    if (!product) return [];
+    const images = (product.images && product.images.length > 0) 
+      ? product.images 
+      : [(product as any).image || '/hero.webp'];
 
-    return product.images.map((imgUrl, idx) => ({
+    return images.map((imgUrl, idx) => ({
       src: imgUrl,
       style: {},
       label: idx === 0 ? 'Main View' : `View ${idx + 1}`
@@ -34,12 +43,14 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
   // Reset active image index when product ID changes
   React.useEffect(() => {
     setActiveImageIndex(0);
+    setUserZoom(1.0);
   }, [product.id]);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
     setAddedNotification(true);
-    setTimeout(() => {
+    if (notifTimeoutRef.current) clearTimeout(notifTimeoutRef.current);
+    notifTimeoutRef.current = setTimeout(() => {
       setAddedNotification(false);
     }, 3000);
   };
@@ -98,7 +109,14 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
               {Boolean(product.isOnSale) && <span className="badge card-badge-sale visual-badge-sale">-{product.discountPercent}%</span>}
               
               {/* Main Viewport */}
-              <div className="detail-photo-viewport flex-center">
+              <div className="detail-photo-viewport flex-center" style={{ position: 'relative' }}>
+                <div className="zoom-controls-overlay" style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '6px' }}>
+                  <button onClick={() => setUserZoom(z => Math.min(z + 0.25, 3.0))} style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '14px' }} title="Zoom In">➕</button>
+                  <button onClick={() => setUserZoom(z => Math.max(z - 0.25, 1.0))} style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '14px' }} title="Zoom Out">➖</button>
+                  {userZoom !== 1.0 && (
+                    <button onClick={() => setUserZoom(1.0)} style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }} title="Reset Zoom">Reset</button>
+                  )}
+                </div>
                 {galleryImages[activeImageIndex] && (
                   <div 
                     className="premium-image-wrapper"
@@ -114,7 +132,7 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
                         objectFit: 'contain',
                         mixBlendMode: 'multiply',
                         transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        transform: `scale(${product.imageCrops?.[activeImageIndex]?.zoom ?? product.defaultZoom ?? 1.0})`,
+                        transform: `scale(${(product.imageCrops?.[activeImageIndex]?.zoom ?? product.defaultZoom ?? 1.0) * userZoom})`,
                         transformOrigin: `${product.imageCrops?.[activeImageIndex]?.x ?? product.defaultZoomX ?? 50}% ${product.imageCrops?.[activeImageIndex]?.y ?? product.defaultZoomY ?? 50}%`,
                         ...galleryImages[activeImageIndex].style
                       }}
@@ -170,6 +188,14 @@ export default function ProductDetailClient({ product, relatedProducts }: { prod
               }}>{'FeelTheWellness'}</span>
               <span className="detail-category">{product.category}</span>
               <h1 className="detail-title">{product.name}</h1>
+              {product.color && (
+                <div style={{ margin: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Color Variant:</span>
+                  <span className="badge" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>
+                    🎨 {product.color}
+                  </span>
+                </div>
+              )}
               
               {/* Rating row */}
               <div className="detail-rating-row">

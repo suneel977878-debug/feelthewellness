@@ -1,9 +1,8 @@
 'use client';
 import React, { useMemo, use } from 'react';
 import Link from 'next/link';
-
-
-
+import Header from '../../../components/Header';
+import Footer from '../../../components/Footer';
 
 export default function SupportPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -136,13 +135,15 @@ export default function SupportPage({ params }: { params: Promise<{ slug: string
   }, [slug]);
 
   return (
-    <div className="support-page-layout">
-      <div className="container">
-        <div className="support-content-box">
-          <div className="support-header">
-            <span className="support-icon">{content.icon}</span>
-            <h1 className="support-title">{content.title}</h1>
-          </div>
+    <>
+      <Header />
+      <div className="support-page-layout">
+        <div className="container">
+          <div className="support-content-box">
+            <div className="support-header">
+              <span className="support-icon">{content.icon}</span>
+              <h1 className="support-title">{content.title}</h1>
+            </div>
           <div className="support-body" dangerouslySetInnerHTML={{ __html: content.body }}></div>
           
           <div className="support-footer">
@@ -271,5 +272,7 @@ export default function SupportPage({ params }: { params: Promise<{ slug: string
         }
       `}</style>
     </div>
+    <Footer />
+    </>
   );
 }

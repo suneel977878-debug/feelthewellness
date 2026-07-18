@@ -43,8 +43,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   const imageUrl = product.images?.[0];
 
-  // Original crossed out price calculation
-  const originalPrice = Math.round(product.price / (1 - (product.discountPercent || 0) / 100));
+  const discountPct = product.discountPercent || 0;
+  const originalPrice = discountPct > 0 ? Math.round(product.price / (1 - discountPct / 100)) : product.price;
   const savedAmount = originalPrice - product.price;
 
   // Render stacked badges — both show if product qualifies for both
@@ -66,10 +66,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     <Link href={`/product/${product.id}`} className="product-card">
       <div className="product-image-area">
         {/* Top-left discount badge — professional two-line style */}
-        {Boolean(product.isOnSale) && (product.discountPercent || 0) > 0 && (
+        {Boolean(product.isOnSale) && discountPct > 0 && (
           <div className="card-badge-discount">
             <span className="discount-save">SAVE ₹{savedAmount.toLocaleString('en-IN')}</span>
-            <span className="discount-pct">{product.discountPercent}% OFF</span>
+            <span className="discount-pct">{discountPct}% OFF</span>
           </div>
         )}
 
@@ -139,7 +139,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Pricing Layout: original on left (crossed out), sale price on right (larger, bold) */}
         <div className="product-price-row">
-          {Boolean(product.isOnSale) && (
+          {Boolean(product.isOnSale) && discountPct > 0 && (
             <span className="product-original-price">
               ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </span>

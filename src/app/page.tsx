@@ -4,7 +4,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import BannerCarousel from '../components/BannerCarousel';
-import AgeGate from '../components/AgeGate';
 import NewsletterForm from '../components/NewsletterForm';
 import Image from 'next/image';
 
@@ -103,7 +102,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <AgeGate />
       <Header />
 
       <main className="home-layout">
@@ -207,7 +205,7 @@ export default async function HomePage() {
           <div className="container">
             <div className="section-header">
               <h2 className="section-title">New Arrivals</h2>
-              <Link href="/catalog?sort=new" className="view-all-link">
+              <Link href="/catalog?sort=newest" className="view-all-link">
                 View All →
               </Link>
             </div>

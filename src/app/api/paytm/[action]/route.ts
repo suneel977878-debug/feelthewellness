@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PaytmChecksum } from '../../../../utils/paytmChecksum';
+import { getStoreConfig } from '../../../actions/config';
 
 export async function POST(request: Request, context: any) {
   const { action } = await context.params;
@@ -12,18 +13,34 @@ export async function POST(request: Request, context: any) {
   return NextResponse.json({ message: 'Not found' }, { status: 404 });
 }
 
+export async function GET(request: Request, context: any) {
+  const { action } = await context.params;
+  
+  if (action === 'callback') {
+    return handleCallback(request);
+  }
+  return NextResponse.json({ message: 'Not found' }, { status: 404 });
+}
+
 async function handleCallback(request: Request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
     let paytmParams: Record<string, string> = {};
 
-    if (contentType.includes('application/x-www-form-urlencoded')) {
-      const formData = await request.formData();
-      formData.forEach((value, key) => {
-        paytmParams[key] = value.toString();
+    if (request.method === 'GET') {
+      const url = new URL(request.url);
+      url.searchParams.forEach((value, key) => {
+        paytmParams[key] = value;
       });
     } else {
-      paytmParams = await request.json();
+      const contentType = request.headers.get('content-type') || '';
+      if (contentType.includes('application/x-www-form-urlencoded')) {
+        const formData = await request.formData();
+        formData.forEach((value, key) => {
+          paytmParams[key] = value.toString();
+        });
+      } else {
+        paytmParams = await request.json().catch(() => ({}));
+      }
     }
 
     const orderId = paytmParams.ORDERID || paytmParams.orderId || '';
@@ -31,7 +48,10 @@ async function handleCallback(request: Request) {
     const txnId = paytmParams.TXNID || paytmParams.txnId || 'N/A';
     const status = paytmParams.STATUS || paytmParams.status || '';
     const respMsg = paytmParams.RESPMSG || paytmParams.respMsg || 'Transaction cancelled or failed.';
-    const isMockCallback = paytmParams.isMock === 'true' || !process.env.PAYTM_MERCHANT_KEY;
+
+    const storeConfig = await getStoreConfig();
+    const configuredKey = storeConfig?.paytmConfig?.merchantKey || process.env.PAYTM_MERCHANT_KEY || '';
+    const isMockCallback = paytmParams.isMock === 'true' || !configuredKey;
 
     const host = request.headers.get('host') || 'localhost:3000';
     const protocol = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
@@ -45,7 +65,7 @@ async function handleCallback(request: Request) {
       }
     }
 
-    const merchantKey = process.env.PAYTM_MERCHANT_KEY || '';
+    const merchantKey = configuredKey;
     const checksumHash = paytmParams.CHECKSUMHASH || '';
     const paramsToVerify = { ...paytmParams };
     delete paramsToVerify.CHECKSUMHASH;
@@ -69,18 +89,24 @@ async function handleCallback(request: Request) {
 
 async function handleInitiate(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { amount, customer, items, paytmConfig } = body;
-    if (!amount || typeof amount !== 'number') return NextResponse.json({ message: 'Invalid amount' }, { status: 400 });
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return NextResponse.json({ message: 'Invalid amount' }, { status: 400 });
+    }
+    if (!customer || !customer.phone) {
+      return NextResponse.json({ message: 'Invalid customer contact information' }, { status: 400 });
+    }
 
     const timestamp = Date.now();
     const random = Math.floor(1000 + Math.random() * 9000);
     const orderId = `LP-ORD-${timestamp}-${random}`;
 
-    const mid = paytmConfig?.mid || process.env.PAYTM_MID;
-    const merchantKey = paytmConfig?.merchantKey || process.env.PAYTM_MERCHANT_KEY;
-    const website = paytmConfig?.website || process.env.PAYTM_WEBSITE || 'DEFAULT';
-    const environment = paytmConfig?.environment || process.env.PAYTM_ENVIRONMENT || 'SIMULATED';
+    const storeConfig = await getStoreConfig();
+    const mid = paytmConfig?.mid || storeConfig?.paytmConfig?.mid || process.env.PAYTM_MID;
+    const merchantKey = paytmConfig?.merchantKey || storeConfig?.paytmConfig?.merchantKey || process.env.PAYTM_MERCHANT_KEY;
+    const website = paytmConfig?.website || storeConfig?.paytmConfig?.website || process.env.PAYTM_WEBSITE || 'DEFAULT';
+    const environment = paytmConfig?.environment || storeConfig?.paytmConfig?.environment || process.env.PAYTM_ENVIRONMENT || 'SIMULATED';
 
     const isMock = environment === 'SIMULATED' || !mid || !merchantKey;
     const host = request.headers.get('host') || 'localhost:3000';

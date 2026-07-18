@@ -49,7 +49,7 @@ const banners: Banner[] = [
     id: 'sale_4',
     src: '/banners/banner_sale_4.webp',
     alt: 'Intimate Couples Mega Discount',
-    link: '/catalog?category=Couple%27s%20Play',
+    link: '/catalog?category=Couples%20Toys',
     headline: 'Better Together',
     subtext: 'Couples Toys & Kits',
     cta: 'Shop Couples',

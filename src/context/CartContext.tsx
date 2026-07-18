@@ -47,13 +47,23 @@ export function CartProvider({ children, initialConfig, initialPromos }: { child
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load cart from localstorage on mount
+  // Load cart from localstorage on mount & sync across tabs
   useEffect(() => {
     try {
       const storedCart = localStorage.getItem('feel_the_wellness_cart');
       if (storedCart) setCart(JSON.parse(storedCart));
     } catch (_) {}
     setIsLoaded(true);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'feel_the_wellness_cart') {
+        try {
+          setCart(e.newValue ? JSON.parse(e.newValue) : []);
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Sync cart to localStorage
@@ -65,16 +75,18 @@ export function CartProvider({ children, initialConfig, initialPromos }: { child
 
   // Cart Functions
   const addToCart = (product: Product, quantity: number = 1) => {
+    if (isNaN(quantity) || quantity <= 0) return;
+    const cleanQty = Math.floor(quantity);
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.product.id === product.id);
       if (existingItem) {
         return prevCart.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + cleanQty }
             : item
         );
       }
-      return [...prevCart, { product, quantity }];
+      return [...prevCart, { product, quantity: cleanQty }];
     });
   };
 
@@ -83,13 +95,14 @@ export function CartProvider({ children, initialConfig, initialPromos }: { child
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
+    if (isNaN(quantity) || quantity <= 0) {
       removeFromCart(productId);
       return;
     }
+    const cleanQty = Math.floor(quantity);
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item.product.id === productId ? { ...item, quantity: cleanQty } : item
       )
     );
   };
@@ -99,7 +112,8 @@ export function CartProvider({ children, initialConfig, initialPromos }: { child
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    const sum = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    return Math.round(sum * 100) / 100;
   };
 
   const getCartCount = () => {

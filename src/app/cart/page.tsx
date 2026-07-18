@@ -24,13 +24,47 @@ export default function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Manual UPI States
+  // Manual UPI & Gateway States
+  const [paymentMode, setPaymentMode] = useState<'paytm' | 'upi'>('upi');
   const [paymentApp, setPaymentApp] = useState<'paytm' | 'gpay' | 'phonepe'>('phonepe');
   const [utrNumber, setUtrNumber] = useState('');
 
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
   const [promoError, setPromoError] = useState('');
+
+  // Load saved customer address from localStorage
+  React.useEffect(() => {
+    try {
+      const savedName = localStorage.getItem('lp_last_customer_name');
+      const savedPhone = localStorage.getItem('lp_last_customer_phone');
+      const savedAddr = localStorage.getItem('lp_last_customer_address');
+      if (savedName) setFullName(savedName);
+      if (savedPhone) setPhoneNumber(savedPhone);
+      if (savedAddr && savedAddr !== 'N/A') {
+        const parts = savedAddr.split(',');
+        if (parts.length >= 1) setAddress(parts[0].trim());
+        if (parts.length >= 2) setCity(parts[1].trim());
+      }
+    } catch (_) {}
+  }, []);
+
+  // Save shipping details to localStorage whenever they change
+  React.useEffect(() => {
+    try {
+      if (fullName) localStorage.setItem('lp_last_customer_name', fullName);
+      if (phoneNumber) localStorage.setItem('lp_last_customer_phone', phoneNumber);
+      if (address && city && stateName && zipCode) {
+        localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+      }
+    } catch (_) {}
+  }, [fullName, phoneNumber, address, city, stateName, zipCode]);
+
+  React.useEffect(() => {
+    if (getCartTotal() <= 0 && appliedPromo) {
+      setAppliedPromo(null);
+    }
+  }, [cart, appliedPromo, getCartTotal]);
 
   const shippingFee = getCartTotal() >= 3000 ? 0 : 150;
   const discountAmount = appliedPromo ? Math.round((getCartTotal() * appliedPromo.discountPct) / 100) : 0;
@@ -75,7 +109,7 @@ export default function CartPage() {
       return;
     }
 
-    if (!/^\d{12}$/.test(utrNumber.trim())) {
+    if (paymentMode === 'upi' && !/^\d{12}$/.test(utrNumber.trim())) {
       setErrorMsg('Please enter a valid 12-digit UTR or Reference Number from your UPI App.');
       return;
     }
@@ -83,8 +117,44 @@ export default function CartPage() {
     setIsSubmitting(true);
 
     try {
-      // We create the order in the database immediately as PENDING.
-      // This prevents data loss if localStorage is cleared.
+      // Save customer details immediately to localStorage
+      localStorage.setItem('lp_last_customer_name', fullName);
+      localStorage.setItem('lp_last_customer_phone', phoneNumber);
+      localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+
+      if (paymentMode === 'paytm') {
+        const res = await fetch('/api/paytm/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: orderTotal,
+            customer: {
+              name: fullName,
+              phone: phoneNumber,
+              address: `${address}, ${city}, ${stateName} - ${zipCode}`
+            },
+            items: cart,
+            paytmConfig
+          })
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || 'Failed to initiate Paytm gateway checkout.');
+        }
+        const data = await res.json();
+        if (data.isMock) {
+          router.push(`/paytm-mock?orderId=${encodeURIComponent(data.orderId)}&amount=${data.amount}&callbackUrl=${encodeURIComponent(data.callbackUrl)}`);
+          return;
+        } else if (data.txnToken && data.orderId) {
+          if (data.redirectUrl) {
+            window.location.href = data.redirectUrl;
+            return;
+          }
+        }
+        throw new Error('Invalid response from Paytm gateway.');
+      }
+
+      // Manual UPI Flow
       const orderId = `LP-ORD-REG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       await createOrder({
@@ -106,7 +176,6 @@ export default function CartPage() {
         }))
       });
 
-      // Pass the PENDING status directly to the success page
       const queryParams = new URLSearchParams({
         orderId: orderId,
         amount: orderTotal.toString(),
@@ -300,70 +369,104 @@ export default function CartPage() {
                         />
                       </div>
 
-                      {/* Manual UPI Payment Section */}
-                      <div className="upi-payment-section">
-                        <h4>1. Select your UPI App</h4>
-                        <div className="upi-app-selectors">
-                          <label className={`upi-app-card ${paymentApp === 'phonepe' ? 'selected' : ''}`}>
-                            <input type="radio" name="paymentApp" value="phonepe" checked={paymentApp === 'phonepe'} onChange={() => setPaymentApp('phonepe')} />
-                            <span className="app-icon phonepe">पे</span>
-                            <span className="app-name">PhonePe</span>
-                          </label>
-                          <label className={`upi-app-card ${paymentApp === 'gpay' ? 'selected' : ''}`}>
-                            <input type="radio" name="paymentApp" value="gpay" checked={paymentApp === 'gpay'} onChange={() => setPaymentApp('gpay')} />
-                            <span className="app-icon gpay">G</span>
-                            <span className="app-name">GPay</span>
-                          </label>
-                          <label className={`upi-app-card ${paymentApp === 'paytm' ? 'selected' : ''}`}>
-                            <input type="radio" name="paymentApp" value="paytm" checked={paymentApp === 'paytm'} onChange={() => setPaymentApp('paytm')} />
-                            <span className="app-icon paytm">₹</span>
-                            <span className="app-name">Paytm</span>
-                          </label>
-                        </div>
-                        
-                        <div className="upi-app-action-btn" style={{ marginBottom: '24px' }}>
-                          <a href={getAppDeepLink()} className="btn btn-primary" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                            Open {paymentApp === 'phonepe' ? 'PhonePe' : paymentApp === 'gpay' ? 'GPay' : 'Paytm'} & Pay ₹{orderTotal.toLocaleString('en-IN')}
-                          </a>
-                          <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                            (If you are on a mobile device, tapping this button will autofill the details in your app)
-                          </p>
-                        </div>
-                        
-                        <div className="upi-payment-instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                          <h4>2. Or Scan QR / Send via UPI ID</h4>
-                          <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', margin: '16px 0', display: 'inline-block', border: '2px solid var(--accent-gold)' }}>
-                            <img 
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`)}`} 
-                              alt="Scan to pay" 
-                              style={{ width: '180px', height: '180px', display: 'block' }} 
-                            />
-                          </div>
-                          <p style={{ margin: '8px 0 16px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>UPI ID:</p>
-                          <div className="upi-id-box" style={{ width: '100%', maxWidth: '350px' }}>
-                            <span className="upi-id-text">{storeUpiId}</span>
-                            <button type="button" className="copy-btn" onClick={(e) => {
-                              e.preventDefault();
-                              navigator.clipboard.writeText(storeUpiId);
-                              alert('UPI ID Copied!');
-                            }}>Copy</button>
-                          </div>
-                        </div>
-
-                        <div className="upi-utr-section">
-                          <h4>3. Verify Payment</h4>
-                          <label className="form-label" htmlFor="utr">Enter 12-digit UTR / Reference Number</label>
-                          <input
-                            id="utr"
-                            type="text"
-                            className="form-input utr-input"
-                            placeholder="e.g. 325419472918"
-                            value={utrNumber}
-                            onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, '').substring(0, 12))}
-                            required
-                          />
+                      {/* Payment Method Toggle Section */}
+                      <div className="payment-method-toggle" style={{ margin: '24px 0', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+                        <h4 style={{ marginBottom: '12px', color: 'var(--accent-color)' }}>Select Payment Method</h4>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className={`btn ${paymentMode === 'upi' ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ flex: 1, minWidth: '200px', padding: '12px' }}
+                            onClick={() => setPaymentMode('upi')}
+                          >
+                            ⚡ Manual UPI QR Code / UTR
+                          </button>
+                          <button
+                            type="button"
+                            className={`btn ${paymentMode === 'paytm' ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{ flex: 1, minWidth: '200px', padding: '12px' }}
+                            onClick={() => setPaymentMode('paytm')}
+                          >
+                            🔒 Paytm Gateway (Cards/UPI/Wallet)
+                          </button>
                         </div>
                       </div>
+
+                      {/* Manual UPI Payment Section */}
+                      {paymentMode === 'upi' && (
+                        <div className="upi-payment-section">
+                          <h4>1. Select your UPI App</h4>
+                          <div className="upi-app-selectors">
+                            <label className={`upi-app-card ${paymentApp === 'phonepe' ? 'selected' : ''}`}>
+                              <input type="radio" name="paymentApp" value="phonepe" checked={paymentApp === 'phonepe'} onChange={() => setPaymentApp('phonepe')} />
+                              <span className="app-icon phonepe">पे</span>
+                              <span className="app-name">PhonePe</span>
+                            </label>
+                            <label className={`upi-app-card ${paymentApp === 'gpay' ? 'selected' : ''}`}>
+                              <input type="radio" name="paymentApp" value="gpay" checked={paymentApp === 'gpay'} onChange={() => setPaymentApp('gpay')} />
+                              <span className="app-icon gpay">G</span>
+                              <span className="app-name">GPay</span>
+                            </label>
+                            <label className={`upi-app-card ${paymentApp === 'paytm' ? 'selected' : ''}`}>
+                              <input type="radio" name="paymentApp" value="paytm" checked={paymentApp === 'paytm'} onChange={() => setPaymentApp('paytm')} />
+                              <span className="app-icon paytm">₹</span>
+                              <span className="app-name">Paytm</span>
+                            </label>
+                          </div>
+                          
+                          <div className="upi-app-action-btn" style={{ marginBottom: '24px' }}>
+                            <a 
+                              href={getAppDeepLink()} 
+                              className="btn btn-primary" 
+                              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}
+                              onClick={() => {
+                                localStorage.setItem('lp_last_customer_name', fullName);
+                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
+                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+                              }}
+                            >
+                              Open {paymentApp === 'phonepe' ? 'PhonePe' : paymentApp === 'gpay' ? 'GPay' : 'Paytm'} & Pay ₹{orderTotal.toLocaleString('en-IN')}
+                            </a>
+                            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                              (If you are on a mobile device, tapping this button will autofill the details in your app)
+                            </p>
+                          </div>
+                          
+                          <div className="upi-payment-instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                            <h4>2. Or Scan QR / Send via UPI ID</h4>
+                            <div style={{ background: '#fff', padding: '16px', borderRadius: '12px', margin: '16px 0', display: 'inline-block', border: '2px solid var(--accent-gold)' }}>
+                              <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`)}`} 
+                                alt="Scan to pay" 
+                                style={{ width: '180px', height: '180px', display: 'block' }} 
+                              />
+                            </div>
+                            <p style={{ margin: '8px 0 16px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>UPI ID:</p>
+                            <div className="upi-id-box" style={{ width: '100%', maxWidth: '350px' }}>
+                              <span className="upi-id-text">{storeUpiId}</span>
+                              <button type="button" className="copy-btn" onClick={(e) => {
+                                e.preventDefault();
+                                navigator.clipboard.writeText(storeUpiId);
+                                alert('UPI ID Copied!');
+                              }}>Copy</button>
+                            </div>
+                          </div>
+
+                          <div className="upi-utr-section">
+                            <h4>3. Verify Payment</h4>
+                            <label className="form-label" htmlFor="utr">Enter 12-digit UTR / Reference Number</label>
+                            <input
+                              id="utr"
+                              type="text"
+                              className="form-input utr-input"
+                              placeholder="e.g. 325419472918"
+                              value={utrNumber}
+                              onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, '').substring(0, 12))}
+                              required={paymentMode === 'upi'}
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       {/* Promo Code Section */}
                       <div className="promo-code-section" style={{ marginTop: '24px', padding: '16px 0', borderTop: '1px solid var(--border-light)' }}>

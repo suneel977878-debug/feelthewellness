@@ -20,14 +20,14 @@ export const getStoreConfig = unstable_cache(
       }
       
       return {
-        ageGateEnabled: Boolean(config.ageGateEnabled),
-        storeUpiId: config.storeUpiId,
+        ageGateEnabled: Boolean(config?.ageGateEnabled),
+        storeUpiId: config?.storeUpiId || "luxurydiscreet@ybl",
         paytmConfig: {
-          mid: config.paytmMid,
-          merchantKey: config.paytmKey,
+          mid: config?.paytmMid || "",
+          merchantKey: config?.paytmKey || "",
           website: "DEFAULT",
           channelId: "WEB",
-          environment: config.paytmEnv as 'SIMULATED' | 'STAGE' | 'PROD'
+          environment: (config?.paytmEnv || "SIMULATED") as 'SIMULATED' | 'STAGE' | 'PROD'
         }
       };
     } catch(error) {
@@ -54,7 +54,9 @@ export async function updateAgeGate(enabled: boolean) {
 
 export async function updateStoreUpiId(upiId: string) {
   await verifyAdminAuth();
-  await pool.query('UPDATE StoreConfig SET storeUpiId = ? WHERE id = 1', [upiId.trim()]);
+  const cleanUpi = (upiId || "").trim();
+  if (!cleanUpi) throw new Error("UPI ID cannot be empty");
+  await pool.query('UPDATE StoreConfig SET storeUpiId = ? WHERE id = 1', [cleanUpi]);
   revalidateTag('config', 'max');
   return true;
 }
@@ -63,7 +65,7 @@ export async function updatePaytmConfig(config: PaytmConfig) {
   await verifyAdminAuth();
   await pool.query(
     'UPDATE StoreConfig SET paytmMid = ?, paytmKey = ?, paytmEnv = ? WHERE id = 1',
-    [config.mid.trim(), config.merchantKey.trim(), config.environment]
+    [(config?.mid || "").trim(), (config?.merchantKey || "").trim(), config?.environment || "SIMULATED"]
   );
   revalidateTag('config', 'max');
   return true;
@@ -89,9 +91,14 @@ export const getPromos = unstable_cache(
 
 export async function addPromo(code: string, discountPct: number) {
   await verifyAdminAuth();
+  const cleanCode = (code || "").trim().toUpperCase();
+  if (!cleanCode) throw new Error("Promo code cannot be empty");
+  if (isNaN(discountPct) || discountPct <= 0 || discountPct > 100) {
+    throw new Error("Discount percentage must be between 1 and 100");
+  }
   const [result] = await pool.query(
     'INSERT INTO PromoCode (code, discountPct, isActive, createdAt, updatedAt) VALUES (?, ?, 1, NOW(), NOW())',
-    [code.trim().toUpperCase(), discountPct]
+    [cleanCode, discountPct]
   );
   const insertId = (result as any).insertId;
   const [rows] = await pool.query('SELECT * FROM PromoCode WHERE id = ?', [insertId]);

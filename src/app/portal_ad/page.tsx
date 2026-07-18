@@ -36,100 +36,185 @@ export default function AdminPage() {
   // Fetch initial data
   React.useEffect(() => {
     async function loadData() {
-      const [ProductsAction, OrdersAction] = await Promise.all([
-        import('../actions/products'),
-        import('../actions/orders')
-      ]);
-      const fetchedProducts = await ProductsAction.getProducts();
-      const fetchedOrders = await OrdersAction.getOrders();
-      setProducts(fetchedProducts);
-      setOrders(fetchedOrders);
-      setIsLoadingData(false);
+      try {
+        const [ProductsAction, OrdersAction] = await Promise.all([
+          import('../actions/products'),
+          import('../actions/orders')
+        ]);
+        const fetchedProducts = await ProductsAction.getProducts();
+        const fetchedOrders = await OrdersAction.getOrders();
+        setProducts(fetchedProducts || []);
+        setOrders(fetchedOrders || []);
+      } catch (err) {
+        console.error("Error loading admin data:", err);
+      } finally {
+        setIsLoadingData(false);
+      }
     }
     if (isAuthorized) {
       loadData();
     }
   }, [isAuthorized]);
 
-  // Actions wrappers
+  // Actions wrappers with try/catch
   const addProduct = async (product: Omit<Product, 'id'>) => {
-    const { createProduct } = await import('../actions/products');
-    const newProduct = await createProduct(product);
-    setProducts(prev => [newProduct, ...prev]);
+    try {
+      const { createProduct } = await import('../actions/products');
+      const newProduct = await createProduct(product);
+      if (newProduct && newProduct.id) {
+        setProducts(prev => [newProduct, ...prev]);
+      }
+    } catch (error: any) {
+      console.error("Add product error:", error);
+      alert(error.message || "Failed to add product");
+    }
   };
 
   const updateProduct = async (product: Product) => {
-    const { updateProduct: updateP } = await import('../actions/products');
-    const updated = await updateP(product);
-    setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
+    try {
+      const { updateProduct: updateP } = await import('../actions/products');
+      const updated = await updateP(product);
+      if (updated && updated.id) {
+        setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
+      }
+    } catch (error: any) {
+      console.error("Update product error:", error);
+      alert(error.message || "Failed to update product");
+    }
   };
 
   const deleteProduct = async (productId: number) => {
-    const { deleteProduct: delP } = await import('../actions/products');
-    await delP(productId);
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    try {
+      const { deleteProduct: delP } = await import('../actions/products');
+      await delP(productId);
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch (error: any) {
+      console.error("Delete product error:", error);
+      alert(error.message || "Failed to delete product");
+    }
   };
 
   const bulkUpdatePrices = async (productIds: number[], type: 'increase' | 'decrease', unit: 'amount' | 'percentage', value: number) => {
-    const { bulkUpdatePrices: bulkP, getProducts } = await import('../actions/products');
-    await bulkP(productIds, type, unit, value);
-    const refreshed = await getProducts();
-    setProducts(refreshed);
+    try {
+      const { bulkUpdatePrices: bulkP, getProducts } = await import('../actions/products');
+      await bulkP(productIds, type, unit, value);
+      const refreshed = await getProducts();
+      setProducts(refreshed || []);
+      alert('Bulk price update applied successfully!');
+    } catch (error: any) {
+      console.error("Bulk update error:", error);
+      alert(error.message || "Failed to apply bulk price update");
+    }
   };
 
   const updatePaytmConfig = async (config: any) => {
-    const { updatePaytmConfig: updateConfig } = await import('../actions/config');
-    await updateConfig(config);
-    setContextPaytmConfig(config);
+    try {
+      const { updatePaytmConfig: updateConfig } = await import('../actions/config');
+      await updateConfig(config);
+      setContextPaytmConfig(config);
+    } catch (error: any) {
+      console.error("Update Paytm config error:", error);
+      alert(error.message || "Failed to save Paytm configuration");
+    }
   };
 
   const updateOrderStatus = async (orderId: string, status: 'VERIFIED' | 'FAILED') => {
-    const { updateOrderStatus: updateStatus } = await import('../actions/orders');
-    const updated = await updateStatus(orderId, status);
-    setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
+    try {
+      const { updateOrderStatus: updateStatus } = await import('../actions/orders');
+      const updated = await updateStatus(orderId, status);
+      if (updated && updated.orderId) {
+        setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
+      }
+    } catch (error: any) {
+      console.error("Update order status error:", error);
+      alert(error.message || "Failed to update order status");
+    }
   };
 
   const updateDeliveryTracking = async (orderId: string, status: 'PROCESSING' | 'SHIPPED' | 'DELIVERED', note: string) => {
-    const { updateDeliveryTracking: updateTracking } = await import('../actions/orders');
-    const updated = await updateTracking(orderId, status, note);
-    setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
+    try {
+      const { updateDeliveryTracking: updateTracking } = await import('../actions/orders');
+      const updated = await updateTracking(orderId, status, note);
+      if (updated && updated.orderId) {
+        setOrders(prev => prev.map(o => o.orderId === updated.orderId ? updated : o));
+      }
+    } catch (error: any) {
+      console.error("Update delivery tracking error:", error);
+      alert(error.message || "Failed to update tracking info");
+    }
   };
 
   const clearOrders = async () => {
-    const { clearOrders: clearO } = await import('../actions/orders');
-    await clearO();
-    setOrders([]);
+    try {
+      const { clearOrders: clearO } = await import('../actions/orders');
+      await clearO();
+      setOrders([]);
+    } catch (error: any) {
+      console.error("Clear orders error:", error);
+      alert(error.message || "Failed to clear orders");
+    }
   };
 
   const setAgeGateEnabled = async (enabled: boolean) => {
-    const { updateAgeGate } = await import('../actions/config');
-    await updateAgeGate(enabled);
-    setAgeGateEnabledState(enabled);
+    try {
+      const { updateAgeGate } = await import('../actions/config');
+      await updateAgeGate(enabled);
+      setAgeGateEnabledState(enabled);
+    } catch (error: any) {
+      console.error("Update age gate error:", error);
+      alert(error.message || "Failed to update Age Gate setting");
+    }
   };
 
   const handleSaveUpiId = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { updateStoreUpiId } = await import('../actions/config');
-    await updateStoreUpiId(storeUpiId.trim());
-    alert('Store UPI ID saved successfully!');
+    if (!storeUpiId.trim()) {
+      alert('Please enter a valid UPI ID');
+      return;
+    }
+    try {
+      const { updateStoreUpiId } = await import('../actions/config');
+      await updateStoreUpiId(storeUpiId.trim());
+      alert('Store UPI ID saved successfully!');
+    } catch (error: any) {
+      console.error("Save UPI ID error:", error);
+      alert(error.message || "Failed to save UPI ID");
+    }
   };
 
   const addPromo = async (promo: Omit<any, 'id'>) => {
-    const { addPromo: addP } = await import('../actions/config');
-    const newPromo = await addP(promo.code, promo.discountPct);
-    setPromos(prev => [...prev, newPromo]);
+    try {
+      const { addPromo: addP } = await import('../actions/config');
+      const newPromo = await addP(promo.code, promo.discountPct);
+      if (newPromo && newPromo.id) {
+        setPromos(prev => [...prev, newPromo]);
+      }
+    } catch (error: any) {
+      console.error("Add promo error:", error);
+      alert(error.message || "Failed to add promo code");
+    }
   };
 
   const togglePromo = async (id: string, isActive: boolean) => {
-    const { togglePromo: toggleP } = await import('../actions/config');
-    await toggleP(id, isActive);
-    setPromos(prev => prev.map(p => p.id === id ? { ...p, isActive } : p));
+    try {
+      const { togglePromo: toggleP } = await import('../actions/config');
+      await toggleP(id, isActive);
+      setPromos(prev => prev.map(p => p.id === id ? { ...p, isActive } : p));
+    } catch (error: any) {
+      console.error("Toggle promo error:", error);
+      alert(error.message || "Failed to toggle promo code");
+    }
   };
 
   const deletePromo = async (id: string) => {
-    const { deletePromo: delP } = await import('../actions/config');
-    await delP(id);
-    setPromos(prev => prev.filter(p => p.id !== id));
+    try {
+      const { deletePromo: delP } = await import('../actions/config');
+      await delP(id);
+      setPromos(prev => prev.filter(p => p.id !== id));
+    } catch (error: any) {
+      console.error("Delete promo error:", error);
+      alert(error.message || "Failed to delete promo code");
+    }
   };
 
   // Authentication state
@@ -187,16 +272,26 @@ export default function AdminPage() {
   const [paytmEnv, setPaytmEnv] = useState<'SIMULATED' | 'STAGE' | 'PROD'>(paytmConfig.environment);
 
   // Handle Login
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passcode.trim() === 'Sunil@2026') {
-      setIsAuthorized(true);
-      if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
-      setAuthError('');
-      // Sync form states with context loaded configs
-      setPaytmMid(paytmConfig.mid);
-      setPaytmKey(paytmConfig.merchantKey);
-      setPaytmEnv(paytmConfig.environment);
+      try {
+        const { authenticate } = await import('../actions/auth');
+        const authRes = await authenticate(passcode);
+        if (authRes.success) {
+          setIsAuthorized(true);
+          if (typeof window !== 'undefined') sessionStorage.setItem('adminAuthorized', 'true');
+          setAuthError('');
+          // Sync form states with context loaded configs
+          setPaytmMid(paytmConfig.mid);
+          setPaytmKey(paytmConfig.merchantKey);
+          setPaytmEnv(paytmConfig.environment);
+        } else {
+          setAuthError(authRes.error || 'Authentication failed on server.');
+        }
+      } catch (err: any) {
+        setAuthError('Error communicating with server.');
+      }
     } else {
       setAuthError('Invalid administrator passcode. Please try again.');
     }
@@ -205,6 +300,10 @@ export default function AdminPage() {
   // Handle Save Paytm Config
   const handleSavePaytm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (paytmEnv !== 'SIMULATED' && (!paytmMid.trim() || !paytmKey.trim())) {
+      alert('MID and Merchant Key are strictly required for Staging / Production modes.');
+      return;
+    }
     updatePaytmConfig({
       mid: paytmMid.trim(),
       merchantKey: paytmKey.trim(),
@@ -220,7 +319,8 @@ export default function AdminPage() {
     setEditingProduct(null);
     setFormName('');
     setFormPrice('');
-    setFormCategory('Vibrators & Wands');
+    setFormCategory('Women Sex Toys');
+    setFormSubcategory('Vibrators & Wands');
     setFormDescription('');
     setFormSilhouette('wand');
     setFormColor('#ff2a85');
@@ -282,7 +382,7 @@ export default function AdminPage() {
   };
 
   // Submit Product Form
-  const handleProductSubmit = (e: React.FormEvent) => {
+  const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formPrice.trim() || !formDescription.trim()) {
       alert('Please fill out all required product fields.');
@@ -292,6 +392,18 @@ export default function AdminPage() {
     const priceNum = parseInt(formPrice, 10);
     if (isNaN(priceNum) || priceNum <= 0) {
       alert('Please enter a valid price amount.');
+      return;
+    }
+
+    const discountNum = parseFloat(formDiscountPercent);
+    if (formIsOnSale && (isNaN(discountNum) || discountNum <= 0 || discountNum >= 100)) {
+      alert('Please enter a valid discount percentage between 1 and 99 when item is on sale.');
+      return;
+    }
+
+    const ratingNum = parseFloat(formRating);
+    if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      alert('Please enter a valid rating between 1.0 and 5.0.');
       return;
     }
 
@@ -313,8 +425,8 @@ export default function AdminPage() {
       isBestSeller: formIsBestSeller,
       isHero: formIsHero,
       isOnSale: formIsOnSale,
-      discountPercent: parseFloat(formDiscountPercent) || undefined,
-      rating: parseFloat(formRating) || 5.0,
+      discountPercent: formIsOnSale ? discountNum : undefined,
+      rating: ratingNum,
       reviews: parseInt(formReviews, 10) || 0,
       images: formImages.length > 0 ? formImages : ['/products/prod_1_0.jpg'],
       defaultZoom: parseFloat(formDefaultZoom) || 1.0,
@@ -323,21 +435,22 @@ export default function AdminPage() {
       imageCrops: formImageCrops,
     };
 
-    if (editingProduct) {
-      // Edit
-      updateProduct({
-        ...productPayload,
-        id: editingProduct.id,
-      });
-      alert(`Product "${formName}" updated successfully!`);
-    } else {
-      // Add
-      addProduct(productPayload);
-      alert(`Product "${formName}" added successfully!`);
+    try {
+      if (editingProduct) {
+        await updateProduct({
+          ...productPayload,
+          id: editingProduct.id,
+        });
+        alert(`Product "${formName}" updated successfully!`);
+      } else {
+        await addProduct(productPayload);
+        alert(`Product "${formName}" added successfully!`);
+      }
+      setIsModalOpen(false);
+      setEditingProduct(null);
+    } catch (err: any) {
+      alert(err.message || 'Error saving product.');
     }
-
-    setIsModalOpen(false);
-    setEditingProduct(null);
   };
 
   // Filter products for admin view
@@ -687,11 +800,11 @@ export default function AdminPage() {
                       />
                       <button 
                         className="btn btn-primary" 
-                        disabled={!bulkValue || Number(bulkValue) <= 0}
-                        onClick={() => {
+                        disabled={filteredProductsList.length === 0 || !bulkValue || Number(bulkValue) <= 0 || (bulkUnit === 'percentage' && Number(bulkValue) >= 100 && bulkType === 'decrease')}
+                        onClick={async () => {
                           const val = Number(bulkValue);
                           if (val > 0 && confirm(`Are you sure you want to ${bulkType} prices of ${filteredProductsList.length} products by ${val}${bulkUnit === 'percentage' ? '%' : '₹'}?`)) {
-                            bulkUpdatePrices(filteredProductsList.map(p => p.id), bulkType, bulkUnit, val);
+                            await bulkUpdatePrices(filteredProductsList.map(p => p.id), bulkType, bulkUnit, val);
                             setBulkValue('');
                           }
                         }}
@@ -1302,7 +1415,11 @@ export default function AdminPage() {
                       <button 
                         type="button" 
                         style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '10px' }}
-                        onClick={() => setFormImages(prev => prev.filter((_, i) => i !== index))}
+                        onClick={() => {
+                          setFormImages(prev => prev.filter((_, i) => i !== index));
+                          setFormImageCrops(prev => prev.filter((_, i) => i !== index));
+                          setActivePreviewIndex(Math.max(0, activePreviewIndex - 1));
+                        }}
                         title="Remove Image"
                       >✕</button>
                     </div>
@@ -1320,6 +1437,7 @@ export default function AdminPage() {
                         const input = e.target as HTMLInputElement;
                         if (input.value.trim()) {
                           setFormImages(prev => [...prev, input.value.trim()]);
+                          setFormImageCrops(prev => [...prev, { zoom: 1.0, x: 50, y: 50 }]);
                           input.value = '';
                         }
                       }
@@ -1333,6 +1451,7 @@ export default function AdminPage() {
                       const input = document.getElementById('new-image-url') as HTMLInputElement;
                       if (input && input.value.trim()) {
                         setFormImages(prev => [...prev, input.value.trim()]);
+                        setFormImageCrops(prev => [...prev, { zoom: 1.0, x: 50, y: 50 }]);
                         input.value = '';
                       }
                     }}
