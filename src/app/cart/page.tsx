@@ -84,12 +84,42 @@ export default function CartPage() {
     }
   };
 
-  const getAppDeepLink = () => {
-    const params = `?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`;
-    if (paymentApp === 'phonepe') return `phonepe://pay${params}`;
-    if (paymentApp === 'paytm') return `paytmmp://pay${params}`;
-    if (paymentApp === 'gpay') return `tez://upi/pay${params}`;
-    return `upi://pay${params}`;
+  const getPhonePeLink = () => {
+    try {
+      const payload = {
+        contact: {
+          cbcName: "",
+          nickName: "",
+          vpa: storeUpiId,
+          type: "VPA"
+        },
+        p2pPaymentCheckoutParams: {
+          note: "Pay For FeelTheWellness",
+          isByDefaultKnownContact: true,
+          initialAmount: Math.round(orderTotal * 100), // in paise
+          currency: "INR",
+          checkoutType: "DEFAULT",
+          transactionContext: "p2p"
+        }
+      };
+      const base64 = typeof window !== 'undefined' ? window.btoa(JSON.stringify(payload)) : Buffer.from(JSON.stringify(payload)).toString('base64');
+      return `phonepe://native?data=${encodeURIComponent(base64)}&id=p2ppayment`;
+    } catch (e) {
+      return `phonepe://pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`;
+    }
+  };
+
+  const getPaytmLink = () => {
+    return `paytmmp://cash_wallet?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR&tn=Pay For FeelTheWellness&featuretype=money_transfer`;
+  };
+
+  const getGpayLink = () => {
+    return `tez://upi/pay?pa=${storeUpiId}&pn=FeelTheWellness&am=${orderTotal}&cu=INR`;
+  };
+
+  const getWhatsappLink = () => {
+    const text = `Hello, I want to pay ₹${orderTotal} for my FeelTheWellness order. Please send me a high-limit payment request or link.`;
+    return `https://wa.me/91${storePhone}?text=${encodeURIComponent(text)}`;
   };
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
@@ -353,7 +383,7 @@ export default function CartPage() {
                           <h4>1. Tap to Chat & Pay (Select App)</h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
                             <a 
-                              href={`phonepe://pay?pa=${storePhone}@ybl`}
+                              href={getPhonePeLink()}
                               className="btn"
                               style={{ background: '#5f259f', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
                               onClick={() => {
@@ -366,7 +396,7 @@ export default function CartPage() {
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>पे</span> Open PhonePe & Pay to Number
                             </a>
                             <a 
-                              href={`paytmmp://cash_wallet?featuretype=sendmoney&recipient=${storePhone}`}
+                              href={getPaytmLink()}
                               className="btn"
                               style={{ background: '#00baf2', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
                               onClick={() => {
@@ -379,13 +409,25 @@ export default function CartPage() {
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹</span> Open Paytm Chat & Send Money
                             </a>
                             <a 
-                              href={`https://wa.me/91${storePhone}?text=${encodeURIComponent(`Hello, I want to pay ₹${orderTotal} for my FeelTheWellness order. Please send me a payment request.`)}`}
+                              href={getGpayLink()}
+                              className="btn"
+                              style={{ background: '#4285F4', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
+                              onClick={() => {
+                                setPaymentApp('gpay');
+                                localStorage.setItem('lp_last_customer_name', fullName);
+                                localStorage.setItem('lp_last_customer_phone', phoneNumber);
+                                localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
+                              }}
+                            >
+                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>G</span> Open Google Pay & Pay to UPI ID
+                            </a>
+                            <a 
+                              href={getWhatsappLink()}
                               className="btn"
                               style={{ background: '#25D366', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '12px' }}
                               target="_blank"
                               rel="noreferrer"
                               onClick={() => {
-                                setPaymentApp('gpay'); // fallback tracker
                                 localStorage.setItem('lp_last_customer_name', fullName);
                                 localStorage.setItem('lp_last_customer_phone', phoneNumber);
                                 localStorage.setItem('lp_last_customer_address', `${address}, ${city}, ${stateName} - ${zipCode}`);
