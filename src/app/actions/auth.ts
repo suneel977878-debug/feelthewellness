@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 export async function authenticate(passcode: string) {
   // Validate passcode against env variable or default master passcode
-  const validPasscode = process.env.ADMIN_PASSCODE || 'Admin@2026';
+  const validPasscode = process.env.ADMIN_PASSCODE || 'India@2026';
   const sessionToken = process.env.ADMIN_SESSION_TOKEN || 'fallback_secure_token_123';
   
   if (passcode.trim() === validPasscode) {
