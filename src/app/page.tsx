@@ -165,24 +165,21 @@ export default async function HomePage() {
                 { name: 'Couples Kits', category: 'Couples Toys', subcategory: 'All Toys', image: '/categories/category_couples_1783346624063.webp' },
                 { name: 'BDSM Restraints', category: 'BDSM & Bondage', subcategory: 'Bondage & BDSM', image: '/categories/category_bdsm_1783346633974.webp' },
                 { name: 'Intimate Wellness', category: 'Supplements & Condoms', subcategory: 'Lubricants', image: '/categories/category_wellness_1783346643070.webp' }
-              ].map((subcat, idx) => {
-                const count = products.filter(p => p.category === subcat.category && (subcat.subcategory === 'All Toys' || p.subcategory === subcat.subcategory)).length;
-                return (
-                  <Link href={`/catalog?category=${encodeURIComponent(subcat.category)}&subcategory=${encodeURIComponent(subcat.subcategory)}`} key={`subcat-${idx}`} className="vibrant-category-card">
-                    <Image 
-                      src={subcat.image}
-                      alt={subcat.name}
-                      fill
-                      className="cat-bg-image"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    <div className="cat-content">
-                      <h3>{subcat.name}</h3>
-                      <span>{count > 0 ? `${count} Products` : 'Explore'} ➔</span>
-                    </div>
-                  </Link>
-                );
-              })}
+              ].map((subcat, idx) => (
+                <Link href={`/catalog?category=${encodeURIComponent(subcat.category)}&subcategory=${encodeURIComponent(subcat.subcategory)}`} key={`subcat-${idx}`} className="vibrant-category-card">
+                  <Image 
+                    src={subcat.image}
+                    alt={subcat.name}
+                    fill
+                    className="cat-bg-image"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div className="cat-content">
+                    <h3>{subcat.name}</h3>
+                    <span>Explore ➔</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
