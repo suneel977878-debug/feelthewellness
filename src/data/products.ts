@@ -11,6 +11,7 @@ export type Product = {
   features: string[];
   isNew?: boolean;
   isBestSeller?: boolean;
+  isHero?: boolean;
   isOnSale?: boolean;
   discountPercent?: number;
   rating: number;

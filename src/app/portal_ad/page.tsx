@@ -157,6 +157,7 @@ export default function AdminPage() {
   const [formFeatures, setFormFeatures] = useState('');
   const [formIsNew, setFormIsNew] = useState(false);
   const [formIsBestSeller, setFormIsBestSeller] = useState(false);
+  const [formIsHero, setFormIsHero] = useState(false);
   const [formIsOnSale, setFormIsOnSale] = useState(false);
   const [formDiscountPercent, setFormDiscountPercent] = useState('');
   const [formRating, setFormRating] = useState('4.8');
@@ -217,6 +218,7 @@ export default function AdminPage() {
     setFormFeatures('Rechargeable, Water-resistant, Whisper quiet');
     setFormIsNew(true);
     setFormIsBestSeller(false);
+    setFormIsHero(false);
     setFormIsOnSale(false);
     setFormDiscountPercent('');
     setFormRating('4.8');
@@ -243,6 +245,7 @@ export default function AdminPage() {
     setFormFeatures(product.features.join(', '));
     setFormIsNew(!!product.isNew);
     setFormIsBestSeller(!!product.isBestSeller);
+    setFormIsHero(!!product.isHero);
     setFormIsOnSale(!!product.isOnSale);
     setFormDiscountPercent(product.discountPercent ? product.discountPercent.toString() : '');
     setFormRating(product.rating ? product.rating.toString() : '4.8');
@@ -299,6 +302,7 @@ export default function AdminPage() {
       features: featuresArray.length > 0 ? featuresArray : ['Premium Medical Grade Silicone'],
       isNew: formIsNew,
       isBestSeller: formIsBestSeller,
+      isHero: formIsHero,
       isOnSale: formIsOnSale,
       discountPercent: parseFloat(formDiscountPercent) || undefined,
       rating: parseFloat(formRating) || 5.0,
@@ -719,6 +723,7 @@ export default function AdminPage() {
                                 <td className="table-p-price">₹{p.price.toLocaleString('en-IN')}</td>
                                 <td>
                                   <div className="table-badges-row">
+                                    {p.isHero && <span className="badge badge-primary" style={{ background: '#ec4899', color: '#fff', marginRight: '4px' }}>Hero Page</span>}
                                     {p.isBestSeller && <span className="badge badge-accent">Bestseller</span>}
                                     {p.isNew && <span className="badge badge-new">New</span>}
                                   </div>
@@ -1458,6 +1463,10 @@ export default function AdminPage() {
                 <label className="chk-container">
                   <input type="checkbox" checked={formIsBestSeller} onChange={(e) => setFormIsBestSeller(e.target.checked)} />
                   <span>Mark as "Bestseller"</span>
+                </label>
+                <label className="chk-container">
+                  <input type="checkbox" checked={formIsHero} onChange={(e) => setFormIsHero(e.target.checked)} />
+                  <span style={{ color: '#ff2a85', fontWeight: 600 }}>Show on Hero Page</span>
                 </label>
                 <label className="chk-container">
                   <input type="checkbox" checked={formIsOnSale} onChange={(e) => setFormIsOnSale(e.target.checked)} />

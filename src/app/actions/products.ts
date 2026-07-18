@@ -37,6 +37,7 @@ function mapDbProduct(p: any): Product {
     subcategory: p.subcategory || undefined,
     features: parsedFeatures,
     isNew: p.isNew,
+    isHero: !!p.isHero,
     isBestSeller: p.isBestSeller,
     isOnSale: p.isOnSale,
     discountPercent: p.discountPercent || undefined,
@@ -90,12 +91,12 @@ export async function getRelatedProducts(category: string, excludeId: number, li
 
 export async function createProduct(data: Omit<Product, 'id'>) {
   const [result] = await pool.query(
-    `INSERT INTO Product (name, price, description, images, category, subcategory, features, isNew, isBestSeller, isOnSale, discountPercent, rating, reviews, color, silhouetteType, defaultZoom, defaultZoomX, defaultZoomY, imageCrops, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+    `INSERT INTO Product (name, price, description, images, category, subcategory, features, isNew, isHero, isBestSeller, isOnSale, discountPercent, rating, reviews, color, silhouetteType, defaultZoom, defaultZoomX, defaultZoomY, imageCrops, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [
       data.name, data.price, data.description, JSON.stringify(data.images),
       data.category, data.subcategory || null, JSON.stringify(data.features),
-      data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
+      data.isNew ? 1 : 0, data.isHero ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
       data.discountPercent || null, data.rating || 5.0, data.reviews || 0,
       data.color || null, data.silhouetteType || null,
       data.defaultZoom ?? 1.0, data.defaultZoomX ?? 50.0, data.defaultZoomY ?? 50.0,
@@ -110,11 +111,11 @@ export async function createProduct(data: Omit<Product, 'id'>) {
 
 export async function updateProduct(data: Product) {
   await pool.query(
-    `UPDATE Product SET name = ?, price = ?, description = ?, images = ?, category = ?, subcategory = ?, features = ?, isNew = ?, isBestSeller = ?, isOnSale = ?, discountPercent = ?, rating = ?, reviews = ?, color = ?, silhouetteType = ?, defaultZoom = ?, defaultZoomX = ?, defaultZoomY = ?, imageCrops = ?, updatedAt = NOW() WHERE id = ?`,
+    `UPDATE Product SET name = ?, price = ?, description = ?, images = ?, category = ?, subcategory = ?, features = ?, isNew = ?, isHero = ?, isBestSeller = ?, isOnSale = ?, discountPercent = ?, rating = ?, reviews = ?, color = ?, silhouetteType = ?, defaultZoom = ?, defaultZoomX = ?, defaultZoomY = ?, imageCrops = ?, updatedAt = NOW() WHERE id = ?`,
     [
       data.name, data.price, data.description, JSON.stringify(data.images),
       data.category, data.subcategory || null, JSON.stringify(data.features),
-      data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
+      data.isNew ? 1 : 0, data.isHero ? 1 : 0, data.isBestSeller ? 1 : 0, data.isOnSale ? 1 : 0,
       data.discountPercent || null, data.rating || 5.0, data.reviews || 0,
       data.color || null, data.silhouetteType || null,
       data.defaultZoom ?? 1.0, data.defaultZoomX ?? 50.0, data.defaultZoomY ?? 50.0,

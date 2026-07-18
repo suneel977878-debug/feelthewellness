@@ -78,6 +78,8 @@ const customerReviews = [
 export default async function HomePage() {
   const products = await getProducts();
 
+  const heroProducts = products.filter(p => p.isHero);
+
   // Select 4 attractive/lustful products for display (Top Featured)
   const featuredBestsellers = products
     .filter(p => p.isBestSeller)
@@ -149,7 +151,7 @@ export default async function HomePage() {
         </section>
 
         {/* Banner Carousel replacing Hero Section */}
-        <BannerCarousel />
+        <BannerCarousel heroProducts={heroProducts} />
 
         {/* Category Carousel Grid */}
         <section className="home-categories-section">
