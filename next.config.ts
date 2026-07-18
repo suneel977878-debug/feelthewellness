@@ -22,15 +22,6 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/**/*': ['./node_modules/**/*.wasm', './node_modules/**/*.node']
   },
-  async redirects() {
-    return [
-      {
-        source: '/admin',
-        destination: '/portal_ad',
-        permanent: true,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
