@@ -1,6 +1,6 @@
 'use server';
 
-import { PaytmConfig, PromoCode } from '../../context/CartContext';
+import { PaytmConfig } from '../../context/CartContext';
 import pool from '../../lib/db';
 import { unstable_cache, revalidateTag } from 'next/cache';
 import { verifyAdminAuth } from './auth';
@@ -71,51 +71,4 @@ export async function updatePaytmConfig(config: PaytmConfig) {
   return true;
 }
 
-// PROMOS
-export const getPromos = unstable_cache(
-  async (): Promise<PromoCode[]> => {
-    try {
-      const [rows] = await pool.query('SELECT * FROM PromoCode ORDER BY createdAt DESC');
-      return (rows as any[]).map(p => ({
-        ...p,
-        isActive: Boolean(p.isActive)
-      }));
-    } catch(error) {
-      console.error("MySQL Error Promos:", error);
-      return [];
-    }
-  },
-  ['all_promos'],
-  { tags: ['config'], revalidate: 60 }
-);
 
-export async function addPromo(code: string, discountPct: number) {
-  await verifyAdminAuth();
-  const cleanCode = (code || "").trim().toUpperCase();
-  if (!cleanCode) throw new Error("Promo code cannot be empty");
-  if (isNaN(discountPct) || discountPct <= 0 || discountPct > 100) {
-    throw new Error("Discount percentage must be between 1 and 100");
-  }
-  const [result] = await pool.query(
-    'INSERT INTO PromoCode (code, discountPct, isActive, createdAt, updatedAt) VALUES (?, ?, 1, NOW(), NOW())',
-    [cleanCode, discountPct]
-  );
-  const insertId = (result as any).insertId;
-  const [rows] = await pool.query('SELECT * FROM PromoCode WHERE id = ?', [insertId]);
-  revalidateTag('config', 'max');
-  return (rows as any[])[0];
-}
-
-export async function togglePromo(id: string, isActive: boolean) {
-  await verifyAdminAuth();
-  await pool.query('UPDATE PromoCode SET isActive = ? WHERE id = ?', [isActive ? 1 : 0, id]);
-  revalidateTag('config', 'max');
-  return true;
-}
-
-export async function deletePromo(id: string) {
-  await verifyAdminAuth();
-  await pool.query('DELETE FROM PromoCode WHERE id = ?', [id]);
-  revalidateTag('config', 'max');
-  return true;
-}

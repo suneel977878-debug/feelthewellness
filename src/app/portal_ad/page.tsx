@@ -12,7 +12,6 @@ import { logout } from '../actions/auth';
 export default function AdminPage() {
   const {
     paytmConfig: contextPaytmConfig,
-    promos: contextPromos,
     ageGateEnabled: contextAgeGateEnabled,
     storeUpiId: contextStoreUpiId,
   } = useCart();
@@ -20,7 +19,6 @@ export default function AdminPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [promos, setPromos] = useState<any[]>(contextPromos);
   const [paytmConfig, setContextPaytmConfig] = useState<any>(contextPaytmConfig);
   const [ageGateEnabled, setAgeGateEnabledState] = useState<boolean>(contextAgeGateEnabled);
   const [storeUpiId, setStoreUpiIdState] = useState<string>(contextStoreUpiId);
@@ -206,44 +204,12 @@ export default function AdminPage() {
     }
   };
 
-  const addPromo = async (promo: Omit<any, 'id'>) => {
-    try {
-      const { addPromo: addP } = await import('../actions/config');
-      const newPromo = await addP(promo.code, promo.discountPct);
-      if (newPromo && newPromo.id) {
-        setPromos(prev => [...prev, newPromo]);
-      }
-    } catch (error: any) {
-      handleAdminError(error, "Failed to add promo code");
-    }
-  };
-
-  const togglePromo = async (id: string, isActive: boolean) => {
-    try {
-      const { togglePromo: toggleP } = await import('../actions/config');
-      await toggleP(id, isActive);
-      setPromos(prev => prev.map(p => p.id === id ? { ...p, isActive } : p));
-    } catch (error: any) {
-      handleAdminError(error, "Failed to toggle promo code");
-    }
-  };
-
-  const deletePromo = async (id: string) => {
-    try {
-      const { deletePromo: delP } = await import('../actions/config');
-      await delP(id);
-      setPromos(prev => prev.filter(p => p.id !== id));
-    } catch (error: any) {
-      handleAdminError(error, "Failed to delete promo code");
-    }
-  };
-
   // Authentication state
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
 
   // Active tab state
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'promotions' | 'customers' | 'storefront' | 'reviews' | 'paytm' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'customers' | 'storefront' | 'reviews' | 'paytm' | 'settings'>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Search and page states for products management
@@ -282,10 +248,6 @@ export default function AdminPage() {
   const [formDefaultZoomY, setFormDefaultZoomY] = useState('50.0');
   const [formImageCrops, setFormImageCrops] = useState<{zoom: number, x: number, y: number}[]>([]);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
-
-  // Promo Form states
-  const [promoCode, setPromoCode] = useState('');
-  const [promoPct, setPromoPct] = useState('');
 
   // Paytm Config Form states
   const [paytmMid, setPaytmMid] = useState(paytmConfig.mid);
@@ -560,12 +522,6 @@ export default function AdminPage() {
                   onClick={() => setActiveTab('products')}
                 >
                   💄 Catalog Manager ({products.length})
-                </button>
-                <button 
-                  className={`tab-btn ${activeTab === 'promotions' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('promotions')}
-                >
-                  🏷️ Discounts & Promos
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'customers' ? 'active' : ''}`}
@@ -894,104 +850,6 @@ export default function AdminPage() {
                       <h3>No Matching Products</h3>
                       <p>We couldn't find any products matching "{productSearch}" in your local inventory.</p>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB CONTENT: PROMOTIONS */}
-              {activeTab === 'promotions' && (
-                <div className="tab-body animate-fade-in">
-                  <h2>Discounts & Promos</h2>
-                  <p className="tab-section-desc">Manage active coupon codes that customers can apply at checkout.</p>
-
-                  <div className="config-card-form" style={{ marginBottom: '32px' }}>
-                    <h3 style={{ marginBottom: '16px' }}>Create New Promo Code</h3>
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      if (!promoCode.trim() || !promoPct) return;
-                      addPromo({
-                        code: promoCode.trim().toUpperCase(),
-                        discountPct: parseInt(promoPct, 10),
-                        isActive: true
-                      });
-                      setPromoCode('');
-                      setPromoPct('');
-                      alert('Promo Code created successfully!');
-                    }}>
-                      <div className="form-row-grid">
-                        <div className="form-group">
-                          <label className="form-label" htmlFor="pcode">Promo Code</label>
-                          <input
-                            id="pcode"
-                            type="text"
-                            className="form-input"
-                            placeholder="e.g. SUMMER20"
-                            value={promoCode}
-                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label" htmlFor="ppct">Discount Percentage (%)</label>
-                          <input
-                            id="ppct"
-                            type="number"
-                            className="form-input"
-                            placeholder="e.g. 20"
-                            min="1"
-                            max="99"
-                            value={promoPct}
-                            onChange={(e) => setPromoPct(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <button type="submit" className="btn btn-primary" style={{ marginTop: '16px' }}>
-                        + Add Promo Code
-                      </button>
-                    </form>
-                  </div>
-
-                  <h3>Active Promos</h3>
-                  {promos.length > 0 ? (
-                    <div className="admin-products-list">
-                      <div className="products-table-wrapper">
-                        <table className="admin-table">
-                          <thead>
-                            <tr>
-                              <th>Code</th>
-                              <th>Discount</th>
-                              <th>Status</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {promos.map(p => (
-                              <tr key={p.id}>
-                                <td><strong style={{ letterSpacing: '0.1em' }}>{p.code}</strong></td>
-                                <td>{p.discountPct}% OFF</td>
-                                <td>
-                                  <div className="toggle-switch">
-                                    <input 
-                                      type="checkbox" 
-                                      id={`promo-${p.id}`}
-                                      checked={p.isActive}
-                                      onChange={(e) => togglePromo(p.id, e.target.checked)}
-                                    />
-                                    <label htmlFor={`promo-${p.id}`}></label>
-                                  </div>
-                                </td>
-                                <td>
-                                  <button className="btn-table delete-btn" onClick={() => { if(confirm(`Delete promo code ${p.code}?`)) deletePromo(p.id); }}>Delete</button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ) : (
-                    <p style={{ color: 'var(--text-muted)' }}>No promo codes currently created.</p>
                   )}
                 </div>
               )}

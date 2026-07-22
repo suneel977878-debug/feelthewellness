@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ProductCard from '../../components/ProductCard';
-import { useCart, PromoCode } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { createOrder } from '../actions/orders';
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateQuantity, removeFromCart, getCartTotal, getCartCount, paytmConfig, storeUpiId, promos, isLoaded } = useCart();
+  const { cart, updateQuantity, removeFromCart, getCartTotal, getCartCount, paytmConfig, storeUpiId, isLoaded } = useCart();
   
   const phoneMatch = storeUpiId.match(/\b\d{10}\b/);
   const storePhone = phoneMatch ? phoneMatch[0] : '8397868059';
@@ -31,10 +31,6 @@ export default function CartPage() {
   const paymentMode = 'upi';
   const [paymentApp, setPaymentApp] = useState<'paytm' | 'gpay' | 'phonepe'>('phonepe');
   const [utrNumber, setUtrNumber] = useState('');
-
-  const [promoInput, setPromoInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
-  const [promoError, setPromoError] = useState('');
 
   // Load saved customer address from localStorage
   React.useEffect(() => {
@@ -63,26 +59,8 @@ export default function CartPage() {
     } catch (_) {}
   }, [fullName, phoneNumber, address, city, stateName, zipCode]);
 
-  React.useEffect(() => {
-    if (getCartTotal() <= 0 && appliedPromo) {
-      setAppliedPromo(null);
-    }
-  }, [cart, appliedPromo, getCartTotal]);
-
   const shippingFee = getCartTotal() >= 3000 ? 0 : 150;
-  const discountAmount = appliedPromo ? Math.round((getCartTotal() * appliedPromo.discountPct) / 100) : 0;
-  const orderTotal = getCartTotal() - discountAmount + shippingFee;
-
-  const handleApplyPromo = () => {
-    setPromoError('');
-    const promo = promos.find(p => p.code === promoInput.trim().toUpperCase());
-    if (promo && promo.isActive) {
-      setAppliedPromo(promo);
-      setPromoInput('');
-    } else {
-      setPromoError('Invalid or inactive promo code.');
-    }
-  };
+  const orderTotal = getCartTotal() + shippingFee;
 
   const getPhonePeLink = () => {
     try {
@@ -546,41 +524,12 @@ export default function CartPage() {
                         </div>
                       )}
 
-                      {/* Promo Code Section */}
-                      <div className="promo-code-section" style={{ marginTop: '24px', padding: '16px 0', borderTop: '1px solid var(--border-light)' }}>
-                        <h4 style={{ marginBottom: '12px', fontSize: '0.95rem' }}>Apply Promo Code</h4>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input 
-                            type="text" 
-                            className="form-input" 
-                            style={{ textTransform: 'uppercase' }} 
-                            placeholder="Enter code" 
-                            value={promoInput}
-                            onChange={(e) => setPromoInput(e.target.value)}
-                          />
-                          <button type="button" className="btn btn-secondary" onClick={handleApplyPromo}>Apply</button>
-                        </div>
-                        {promoError && <p style={{ color: '#ff3366', fontSize: '0.8rem', marginTop: '8px' }}>{promoError}</p>}
-                        {appliedPromo && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '8px 12px', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent)', borderRadius: '4px' }}>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--accent)' }}>Code <strong>{appliedPromo.code}</strong> applied! ({appliedPromo.discountPct}% OFF)</span>
-                            <button type="button" onClick={() => setAppliedPromo(null)} style={{ background: 'none', border: 'none', color: '#ff3366', cursor: 'pointer', fontSize: '0.8rem' }}>Remove</button>
-                          </div>
-                        )}
-                      </div>
-
                       {/* Total calculations */}
                       <div className="order-summary-box">
                         <div className="summary-row">
                           <span>Basket Subtotal</span>
                           <span>₹{getCartTotal().toLocaleString('en-IN')}</span>
                         </div>
-                        {appliedPromo && (
-                          <div className="summary-row" style={{ color: 'var(--accent)' }}>
-                            <span>Discount ({appliedPromo.discountPct}%)</span>
-                            <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
-                          </div>
-                        )}
                         <div className="summary-row">
                           <span>Discreet Shipping</span>
                           <span>{shippingFee === 0 ? <strong className="free-text">FREE</strong> : `₹${shippingFee}`}</span>

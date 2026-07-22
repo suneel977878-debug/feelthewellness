@@ -16,13 +16,6 @@ export interface PaytmConfig {
   environment: 'SIMULATED' | 'STAGE' | 'PROD';
 }
 
-export interface PromoCode {
-  id: string;
-  code: string;
-  discountPct: number;
-  isActive: boolean;
-}
-
 interface StoreContextType {
   // Cart features
   cart: CartItem[];
@@ -35,7 +28,6 @@ interface StoreContextType {
 
   // Settings & Promos
   paytmConfig: PaytmConfig;
-  promos: PromoCode[];
   ageGateEnabled: boolean;
   storeUpiId: string;
   isLoaded: boolean;
@@ -43,7 +35,7 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-export function CartProvider({ children, initialConfig, initialPromos }: { children: React.ReactNode, initialConfig?: any, initialPromos?: PromoCode[] }) {
+export function CartProvider({ children, initialConfig }: { children: React.ReactNode, initialConfig?: any }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -131,7 +123,6 @@ export function CartProvider({ children, initialConfig, initialPromos }: { child
         getCartTotal,
         getCartCount,
         paytmConfig: initialConfig?.paytmConfig || { mid: '', merchantKey: '', website: 'DEFAULT', channelId: 'WEB', environment: 'SIMULATED' },
-        promos: initialPromos || [],
         ageGateEnabled: initialConfig?.ageGateEnabled ?? true,
         storeUpiId: initialConfig?.storeUpiId || 'luxurydiscreet@ybl',
         isLoaded

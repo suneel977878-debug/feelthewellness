@@ -264,8 +264,8 @@ export default async function HomePage() {
         {/* Newsletter Signup */}
         <section className="newsletter-section">
           <div className="container newsletter-container">
-            <h2>Unlock Secret Promos & Expert Tips</h2>
-            <p>Subscribe to our confidential newsletter. Receive 10% off your first checkout, exclusive tips, and priority launches.</p>
+            <h2>Unlock Exclusive Offers & Expert Tips</h2>
+            <p>Subscribe to our confidential newsletter. Receive exclusive wellness updates, tips, and priority launches.</p>
             <NewsletterForm />
             <span className="newsletter-disclaimer">We respect your absolute privacy. Unsubscribe at any time.</span>
           </div>
