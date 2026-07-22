@@ -1,5 +1,6 @@
 'use server';
 
+import crypto from 'crypto';
 import pool from '../../lib/db';
 import { verifyAdminAuth } from './auth';
 
@@ -127,21 +128,20 @@ export async function createOrder(data: Omit<Order, 'id' | 'date'>) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const [result] = await connection.query(
-      `INSERT INTO \`Order\` (orderId, amount, status, deliveryStatus, deliveryNote, utr, paymentApp, customerName, customerPhone, customerAddress, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+    const internalId = crypto.randomUUID();
+    await connection.query(
+      `INSERT INTO \`Order\` (id, orderId, amount, status, deliveryStatus, deliveryNote, utr, paymentApp, customerName, customerPhone, customerAddress, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
-        data.orderId, data.amount, data.status || 'PENDING', data.deliveryStatus || null, data.deliveryNote || null,
+        internalId, data.orderId, data.amount, data.status || 'PENDING', data.deliveryStatus || null, data.deliveryNote || null,
         data.utr || null, data.paymentApp || null, data.customer?.name || 'Guest Customer', data.customer?.phone || 'N/A', data.customer?.address || 'N/A'
       ]
     );
     
-    const insertId = (result as any).insertId;
-    
     for (const item of (data.items || [])) {
       await connection.query(
         `INSERT INTO OrderItem (productId, name, price, quantity, orderId) VALUES (?, ?, ?, ?, ?)`,
-        [item.id, item.name, item.price, item.quantity, insertId]
+        [item.id, item.name, item.price, item.quantity, internalId]
       );
     }
     
